@@ -11,3 +11,18 @@
 $ mvn clean install
 ```
 
+```
+                              +-------------------------+
+Dashboard ------------------> |                         |
+                              |  SpringBoot Web         |
+Player registration --------> |                         |
+                              |                         |
+                              | ----------------------- |
+                              |                         |
+      Player 1 &lt;-----------  |                         |
+      Player 2 &lt;-----------  |  RxNetty Clients        |
+       ...                    |    / Observable         |
+      Player n &lt;-----------  |                         |
+                              +-------------------------+
+
+```

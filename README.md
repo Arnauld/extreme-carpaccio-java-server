@@ -11,6 +11,8 @@
 $ mvn clean install
 ```
 
+## Architecture
+
 ```
                            +-------------------------+
 Dashboard ---------------> |                         |

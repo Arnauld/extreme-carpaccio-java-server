@@ -12,17 +12,17 @@ $ mvn clean install
 ```
 
 ```
-                              +-------------------------+
-Dashboard ------------------> |                         |
-                              |  SpringBoot Web         | {WebController.java} ...> {Players.java}
-Player registration --------> |                         |                            ^
-                              |                         |                           /
-                              | ----------------------- |                       ...' 
-                              |                         | {Game.java} .........'
-      Player 1 <------------  |                         |        :             `....> {QuestionGenerator.java}
-      Player 2 <------------  |  RxNetty Clients        |        v
-       ...                    |    / Observable         | {RxNettyQuestionDispatcher.java}
-      Player n <------------  |                         |
-                              +-------------------------+
+                           +-------------------------+
+Dashboard ---------------> |                         |
+                           |  SpringBoot Web         | {WebController.java} ...> {Players.java}
+Player registration -----> |                         |                            ^
+                           |                         |                           /
+                           | ----------------------- |                       ...' 
+                           |                         | {Game.java} .........'
+      Player 1 <---------  |                         |        :             `....> {QuestionGenerator.java}
+      Player 2 <---------  |  RxNetty Clients        |        v
+       ...                 |    / Observable         | {RxNettyQuestionDispatcher.java}
+      Player n <---------  |                         |
+                           +-------------------------+
 
 ```

@@ -19,10 +19,10 @@ Player registration --------> |                         |
                               |                         |
                               | ----------------------- |
                               |                         |
-      Player 1 &lt;-----------  |                         |
-      Player 2 &lt;-----------  |  RxNetty Clients        |
+      Player 1 <------------  |                         |
+      Player 2 <------------  |  RxNetty Clients        |
        ...                    |    / Observable         |
-      Player n &lt;-----------  |                         |
+      Player n <------------  |                         |
                               +-------------------------+
 
 ```

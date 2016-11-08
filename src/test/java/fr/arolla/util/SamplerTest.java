@@ -1,5 +1,6 @@
-package fr.arolla.core;
+package fr.arolla.util;
 
+import fr.arolla.util.Sampler;
 import org.junit.Test;
 
 import java.util.List;

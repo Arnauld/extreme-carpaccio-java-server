@@ -1,4 +1,4 @@
-package fr.arolla.core;
+package fr.arolla.util;
 
 import java.util.List;
 

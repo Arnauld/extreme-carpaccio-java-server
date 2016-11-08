@@ -24,7 +24,7 @@ public class QuestionMultipleChoiceTest {
     public void should_support_edge_cases() {
         QuestionMultipleChoice q = new QuestionMultipleChoice(
                 "What's your name?",
-                s -> s != null && Pattern.compile("[^0-9]+").matcher(s).matches());
+                s -> Pattern.compile("[^0-9]+").matcher(s).matches());
 
         assertThat(q.isInvalid()).isFalse();
         assertThat(q.accepts(null, "Arnauld")).isTrue();

@@ -27,6 +27,10 @@ public class QuestionGeneratorBasic implements QuestionGenerator {
 
     @Override
     public Question nextQuestion(int tick) {
+        return randomPriceQuestion();
+    }
+
+    private Question randomPriceQuestion() {
         int sz = randomizator.randomInt(15);
         int[] quantities = randomizator.randomPositiveInts(sz, 100);
         double[] prices = randomizator.randomPositiveDoubles(sz, 1000.0d);

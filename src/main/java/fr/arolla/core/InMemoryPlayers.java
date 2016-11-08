@@ -1,5 +1,6 @@
 package fr.arolla.core;
 
+import fr.arolla.util.Sampler;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;

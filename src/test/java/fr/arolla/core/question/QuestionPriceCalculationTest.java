@@ -4,13 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
+import java.util.function.DoubleUnaryOperator;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class QuestionPriceCalculationTest {
-    private Function<Double, Double> taxFn = t -> t * 1.1d;
-    private Function<Double, Double> reductionFn = t -> t * 0.75d;
+    private DoubleUnaryOperator taxFn = t -> t * 1.1d;
+    private DoubleUnaryOperator reductionFn = t -> t * 0.75d;
 
     @Test
     public void should_not_be_an_invalid_question_with_default_gain_and_loss() throws JsonProcessingException {
@@ -68,7 +69,7 @@ public class QuestionPriceCalculationTest {
                         taxFn,
                         reductionFn);
 
-        double total = reductionFn.apply(taxFn.apply(1 * 1.0 + 2 * 2.0 + 3 * 3.0 + 4 * 4.0));
+        double total = reductionFn.applyAsDouble(taxFn.applyAsDouble(1 * 1.0 + 2 * 2.0 + 3 * 3.0 + 4 * 4.0));
         assertThat(q.accepts(total, null)).isTrue();
     }
 

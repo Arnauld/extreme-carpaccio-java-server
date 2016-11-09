@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.DoubleUnaryOperator;
 
 import static fr.arolla.core.question.Taxes.Country.*;
 
@@ -14,73 +14,85 @@ import static fr.arolla.core.question.Taxes.Country.*;
 public class Taxes {
 
     public enum Country {
-        DE,
-        UK,
-        FR,
-        IT,
-        ES,
-        PL,
-        RO,
-        NL,
-        BE,
-        EL,
-        CZ,
-        PT,
-        HU,
-        SE,
-        AT,
-        BG,
-        DK,
-        FI,
-        SK,
-        IE,
-        HR,
-        LT,
-        SI,
-        LV,
-        EE,
-        CY,
-        LU,
-        MT
+        DE("Allemagne", 82.16),
+        FR("France", 66.66),
+        UK("Royaume-Uni", 65.34),
+        IT("Italie", 60.67),
+        ES("Espagne", 46.44),
+        PL("Pologne", 37.97),
+        RO("Roumanie", 19.76),
+        NL("Pays-Bas", 16.98),
+        BE("Belgique", 11.20),
+        EL("Grèce", 10.79),
+        CZ("République Tchèque", 10.51),
+        PT("Portugal", 10.34),
+        HU("Hongrie", 9.83),
+        SE("Suède", 9.85),
+        AT("Autriche", 8.70),
+        BG("Bulgarie", 7.24),
+        DK("Danemark", 5.62),
+        FI("Finlande", 5.49),
+        SK("Slovaquie", 5.43),
+        IE("Irlande", 4.66),
+        HR("Croatie", 4.19),
+        LT("Lituanie", 2.89),
+        SI("Slovénie", 2.06),
+        LV("Lettonie", 1.97),
+        EE("Estonie", 1.32),
+        CY("Chypre", 0.85),
+        LU("Luxembourg", 0.58),
+        MT("Malte", 0.43);
+
+        private final String name;
+        private final double populationInMillions;
+
+        Country(String name, double populationInMillions) {
+            this.name = name;
+            this.populationInMillions = populationInMillions;
+        }
+
+        public double populationInMillions() {
+            return populationInMillions;
+        }
     }
 
 
     public static Taxes defaultTaxes() {
-        Map<Country, TaxAndPopulation> m = new HashMap<>();
-        m.put(DE, tp(1.2d, 190995));
-        m.put(UK, tp(1.21d, 152741));
-        m.put(FR, tp(1.2d, 151381));
-        m.put(IT, tp(1.25d, 143550));
-        m.put(ES, tp(1.19d, 109023));
-        m.put(PL, tp(1.21d, 90574));
-        m.put(RO, tp(1.2d, 46640));
-        m.put(NL, tp(1.2d, 39842));
-        m.put(BE, tp(1.24d, 26510));
-        m.put(EL, tp(1.2d, 25338));
-        m.put(CZ, tp(1.19d, 24755));
-        m.put(PT, tp(1.23d, 24261));
-        m.put(HU, tp(1.27d, 23141));
-        m.put(SE, tp(1.23d, 23047));
-        m.put(AT, tp(1.22d, 20254));
-        m.put(BG, tp(1.21d, 16905));
-        m.put(DK, tp(1.21d, 13348));
-        m.put(FI, tp(1.17d, 12903));
-        m.put(SK, tp(1.18d, 12767));
-        m.put(IE, tp(1.21d, 10894));
-        m.put(HR, tp(1.23d, 9952));
-        m.put(LT, tp(1.23d, 6844));
-        m.put(SI, tp(1.24d, 4858));
-        m.put(LV, tp(1.2d, 4656));
-        m.put(EE, tp(1.22d, 3094));
-        m.put(CY, tp(1.21d, 2));
-        m.put(LU, tp(1.25d, 1));
-        m.put(MT, tp(1.2d, 1));
+        Map<Country, Double> m = new HashMap<>();
+        m.put(DE, 1.2d);
+        m.put(UK, 1.21d);
+        m.put(FR, 1.2d);
+        m.put(IT, 1.25d);
+        m.put(ES, 1.19d);
+        m.put(PL, 1.21d);
+        m.put(RO, 1.2d);
+        m.put(NL, 1.2d);
+        m.put(BE, 1.24d);
+        m.put(EL, 1.2d);
+        m.put(CZ, 1.19d);
+        m.put(PT, 1.23d);
+        m.put(HU, 1.27d);
+        m.put(SE, 1.23d);
+        m.put(AT, 1.22d);
+        m.put(BG, 1.21d);
+        m.put(DK, 1.21d);
+        m.put(FI, 1.17d);
+        m.put(SK, 1.18d);
+        m.put(IE, 1.21d);
+        m.put(HR, 1.23d);
+        m.put(LT, 1.23d);
+        m.put(SI, 1.24d);
+        m.put(LV, 1.2d);
+        m.put(EE, 1.22d);
+        m.put(CY, 1.21d);
+        m.put(LU, 1.25d);
+        m.put(MT, 1.2d);
         return new Taxes(m);
     }
 
-    private final Map<Country, TaxAndPopulation> m;
+    private final Map<Country, Double> m;
 
-    public Taxes(Map<Country, TaxAndPopulation> m) {
+    public Taxes(Map<Country, Double> m) {
         this.m = m;
     }
 
@@ -88,23 +100,7 @@ public class Taxes {
         return new ArrayList<>(m.keySet());
     }
 
-    public Function<Double, Double> taxOf(Country country) {
-        return m.get(country).tax;
-    }
-
-    private static TaxAndPopulation tp(double tax, int population) {
-        return new TaxAndPopulation(tax, population);
-    }
-
-    public static class TaxAndPopulation {
-        private final double defaultTax;
-        private final Function<Double, Double> tax;
-        private final int population;
-
-        public TaxAndPopulation(double defaultTax, int population) {
-            this.defaultTax = defaultTax;
-            this.tax = x -> x * defaultTax;
-            this.population = population;
-        }
+    public DoubleUnaryOperator taxOf(Country country) {
+        return x -> x * m.get(country);
     }
 }

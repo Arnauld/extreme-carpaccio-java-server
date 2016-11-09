@@ -1,6 +1,7 @@
 package fr.arolla.exploratory;
 
 import fr.arolla.core.question.QuestionMultipleChoice;
+import fr.arolla.util.FileWatchr;
 import fr.arolla.util.WorkDirectory;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.data.Offset;

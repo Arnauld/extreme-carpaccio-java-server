@@ -2,7 +2,7 @@ package fr.arolla.core.question;
 
 import fr.arolla.core.Question;
 
-import java.util.function.Function;
+import java.util.function.DoubleUnaryOperator;
 
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
@@ -26,18 +26,26 @@ public class QuestionPriceCalculation extends QuestionSupport implements Questio
     }
 
     private final Data data;
-    private final Function<Double, Double> taxFn;
-    private final Function<Double, Double> reductionFn;
+    private final DoubleUnaryOperator taxFn;
+    private final DoubleUnaryOperator reductionFn;
 
     public QuestionPriceCalculation(int[] quantities,
                                     double[] prices,
                                     Taxes.Country country,
                                     ReductionMode reductionMode,
-                                    Function<Double, Double> taxFn,
-                                    Function<Double, Double> reductionFn) {
-        this.data = new Data(quantities, prices, country, reductionMode);
+                                    DoubleUnaryOperator taxFn,
+                                    DoubleUnaryOperator reductionFn) {
+        this.data = new Data(quantities, truncate(prices), country, reductionMode);
         this.taxFn = taxFn;
         this.reductionFn = reductionFn;
+    }
+
+    private static double[] truncate(double[] values) {
+        for (int i = 0; i < values.length; i++) {
+            double value = values[i];
+            values[i] = Math.floor(value * 100.0) / 100.0;
+        }
+        return values;
     }
 
     @Override
@@ -55,8 +63,8 @@ public class QuestionPriceCalculation extends QuestionSupport implements Questio
         for (int i = 0, n = data.quantities.length; i < n; i++) {
             total += data.quantities[i] * data.prices[i];
         }
-        total = taxFn.apply(total);
-        total = reductionFn.apply(total);
+        total = taxFn.applyAsDouble(total);
+        total = reductionFn.applyAsDouble(total);
         return Math.abs(actualTotal - total) < EPS;
     }
 

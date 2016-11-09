@@ -1,4 +1,4 @@
-package fr.arolla.exploratory;
+package fr.arolla.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

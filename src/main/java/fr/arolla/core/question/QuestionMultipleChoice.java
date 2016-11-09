@@ -1,5 +1,6 @@
 package fr.arolla.core.question;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import fr.arolla.core.Question;
 
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.function.Predicate;
  */
 public class QuestionMultipleChoice extends QuestionSupport implements Question {
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Data {
         public final String question;
         public final List<String> choices;

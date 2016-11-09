@@ -1,16 +1,18 @@
 package fr.arolla.util;
 
+import fr.arolla.core.question.Taxes;
 import org.assertj.core.api.Condition;
 import org.junit.Test;
 
 import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
+import static fr.arolla.core.question.Taxes.Country.*;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RandomizatorTest {
@@ -74,6 +76,33 @@ public class RandomizatorTest {
 
         assertThat(found)
                 .hasSize(xs.length);
+    }
+
+    @Test
+    public void should_pick_one_using_probability() {
+        Taxes.Country[] xs = Taxes.Country.values();
+
+        EnumMap<Taxes.Country, AtomicInteger> count = new EnumMap<>(Taxes.Country.class);
+        for (int i = 0; i < 500; i++) {
+            Taxes.Country x = randomizator.pickOne(xs, Taxes.Country::populationInMillions);
+            AtomicInteger calls = count.get(x);
+            if (calls == null) {
+                calls = new AtomicInteger();
+                count.put(x, calls);
+            }
+            calls.incrementAndGet();
+        }
+
+        Comparator<Map.Entry<Taxes.Country, AtomicInteger>> byCount = comparing(e -> e.getValue().get());
+        List<Map.Entry<Taxes.Country, AtomicInteger>> entriesSortedByPicked =
+                count.entrySet().stream()
+                        .sorted(byCount.reversed())
+                        .collect(toList());
+
+        List<Taxes.Country> countriesSortedByPicked = entriesSortedByPicked.stream()
+                .map(Map.Entry::getKey)
+                .collect(toList());
+        assertThat(countriesSortedByPicked.subList(0, 6)).contains(DE, FR, UK, IT, ES, PL);
     }
 
     private static Condition<int[]> allIntsWithin(int lower, int upperExclusive) {

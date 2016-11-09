@@ -3,8 +3,10 @@ package fr.arolla.util;
 import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
 /**
@@ -31,6 +33,13 @@ public class Randomizator {
     }
 
     /**
+     * @see Random#nextDouble()
+     */
+    public double randomDouble() {
+        return random.nextDouble();
+    }
+
+    /**
      * @see Random#nextInt(int)
      */
     public int[] randomPositiveInts(int nb, int bound) {
@@ -50,5 +59,24 @@ public class Randomizator {
 
     public <T> T pickOne(List<T> values) {
         return values.get(random.nextInt(values.size()));
+    }
+
+    public <T> T pickOne(List<T> values, ToDoubleFunction<T> weight) {
+        double p = random.nextDouble();
+
+        double total = values.stream().mapToDouble(weight).sum();
+        double cumulativeProbability = 0.0d;
+        for (T value : values) {
+            cumulativeProbability += weight.applyAsDouble(value) / total;
+            if (p <= cumulativeProbability)
+                return value;
+        }
+
+        // ok, rely on basic random
+        return pickOne(values);
+    }
+
+    public <T> T pickOne(T[] values, ToDoubleFunction<T> weight) {
+        return pickOne(Arrays.asList(values), weight);
     }
 }

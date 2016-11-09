@@ -11,6 +11,12 @@
 $ mvn clean install
 ```
 
+Overrides configuration with VM argument.
+
+```
+-DquestionGenerator.scriptPath=/Users/Arnauld/Projects/extreme-carpaccio-springboot/script/basic.groovy
+```
+
 ## Architecture
 
 ```
@@ -28,3 +34,9 @@ Player registration -----> |                         |                          
                            +-------------------------+
 
 ```
+
+## Notes
+
+* [ ] Dashboard add code review ranking
+* [ ] Feedback invocation / Question#accept => Question#diagnose to send a relevant feedback message
+* [ ] Bad requests

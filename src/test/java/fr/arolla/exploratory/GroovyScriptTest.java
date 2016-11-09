@@ -1,8 +1,10 @@
 package fr.arolla.exploratory;
 
+import fr.arolla.core.question.QuestionMultipleChoice;
 import fr.arolla.util.WorkDirectory;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.data.Offset;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -30,11 +32,18 @@ public class GroovyScriptTest {
     @Rule
     public WorkDirectory workDirectory = new WorkDirectory().deleteAfterwards(false);
 
+    private ScriptEngine engine;
+    private ScriptEngineManager manager;
+
+    @Before
+    public void setUp() {
+        manager = new ScriptEngineManager();
+        engine = manager.getEngineByName("groovy");
+    }
+
     @Test
     @SuppressWarnings("unchecked")
-    public void should_load_a_script() throws ScriptException {
-        ScriptEngineManager manager = new ScriptEngineManager();
-        ScriptEngine engine = manager.getEngineByName("groovy");
+    public void should_load_a_script__tax_case() throws ScriptException {
         engine.eval(new InputStreamReader(getClass().getResourceAsStream("/script/taxes.groovy")));
         List<Tax> taxes = (List<Tax>) engine.get("taxes");
 
@@ -46,6 +55,35 @@ public class GroovyScriptTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    public void should_load_a_script__and_not_fail_when_querying_a_missing_variable() throws ScriptException {
+        engine.eval(new InputStreamReader(getClass().getResourceAsStream("/script/taxes.groovy")));
+
+        // Attempt to retrieve a missing variable
+        assertThat(engine.get("questions")).isNull();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void should_load_a_script__question_case() throws ScriptException {
+        engine.eval(new InputStreamReader(getClass().getResourceAsStream("/script/question.groovy")));
+        List<QuestionMultipleChoice> qs = (List<QuestionMultipleChoice>) engine.get("questions");
+
+        assertThat(qs).hasSize(4);
+        assertThat(qs.get(0).accepts(null, "Belladona")).isTrue();
+        assertThat(qs.get(1).accepts(null, "java")).isTrue();
+        assertThat(qs.get(1).accepts(null, "c#")).isFalse();
+        assertThat(qs.get(2).accepts(null, "YEs")).isTrue();
+        assertThat(qs.get(3).accepts(null, "a binary associative operation, an identity element     ")).isTrue();
+    }
+
+    @Test(expected = ScriptException.class)
+    @SuppressWarnings("unchecked")
+    public void should_fail_when_loading_an_invalid_script() throws ScriptException {
+        engine.eval(new InputStreamReader(getClass().getResourceAsStream("/script/invalid.groovy")));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     public void should_detect_a_script_change() throws Exception {
         File file = new File(workDirectory.dir(), "taxes.groovy");
         try (InputStream in = getClass().getResourceAsStream("/script/taxes.groovy");
@@ -53,8 +91,6 @@ public class GroovyScriptTest {
             IOUtils.copy(in, out);
         }
 
-        ScriptEngineManager manager = new ScriptEngineManager();
-        ScriptEngine engine = manager.getEngineByName("groovy");
         engine.eval(new InputStreamReader(new FileInputStream(file)));
 
         List<Tax> taxes = (List<Tax>) engine.get("taxes");

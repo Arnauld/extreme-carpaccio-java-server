@@ -55,7 +55,7 @@ public class QuestionPriceCalculation extends QuestionSupport implements Questio
 
     @Override
     public boolean accepts(Double total, String response) {
-        return total != null && isTotalCorrect(total);
+        return response==null && total != null && isTotalCorrect(total);
     }
 
     private boolean isTotalCorrect(double actualTotal) {

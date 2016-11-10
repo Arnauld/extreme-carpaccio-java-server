@@ -34,6 +34,7 @@ public class QuestionGeneratorReloadable implements QuestionGenerator {
     private List<TaxDef> taxDefs;
     private List<QuestionMultipleChoice> questions;
     private double questionsProba = DEFAULT_QUESTION_PROBA;
+    private boolean taxActivated;
 
     public QuestionGeneratorReloadable(Randomizator randomizator, File scriptFile) {
         this(randomizator, scriptFile, Taxes.defaultTaxes());
@@ -74,6 +75,9 @@ public class QuestionGeneratorReloadable implements QuestionGenerator {
     }
 
     private DoubleUnaryOperator taxFn(Taxes.Country country) {
+        if(!taxActivated)
+            return d -> d;
+
         if (taxDefs != null) {
             return taxDefs.stream()
                     .filter(def -> def.country.equals(country.name()))
@@ -101,6 +105,11 @@ public class QuestionGeneratorReloadable implements QuestionGenerator {
                 taxDefs = getOrDefault(engine, "taxes", Collections.emptyList());
                 questions = getOrDefault(engine, "questions", Collections.emptyList());
                 questionsProba = getOrDefault(engine, "questionsProba", DEFAULT_QUESTION_PROBA);
+                taxActivated = getOrDefault(engine, "taxActivated", Boolean.TRUE);
+
+                String version = getOrDefault(engine, "version", "?");
+                LOG.info("Configuration reloaded, version {}", version);
+
             } catch (ScriptException | IOException e) {
                 throw new RuntimeException("Fail to load script '" + scriptFile.getAbsolutePath() + "'", e);
             } catch (ClassCastException e) {

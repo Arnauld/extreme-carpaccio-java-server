@@ -74,7 +74,7 @@ public class RxNettyQuestionDispatcher implements QuestionDispatcher {
 
     private QuestionOfPlayer consolidateResponse(QuestionOfPlayer qop, ResponseDto response) {
         log.info("Consolidating response with {}", response);
-        return qop.withStatus(response.status);
+        return qop.withStatus(response.status).withResponse(response.total, response.response);
     }
 
     private ResponseDto fromBytes(ByteBuf byteBuf) {

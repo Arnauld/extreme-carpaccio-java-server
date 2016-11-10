@@ -43,16 +43,20 @@ public class Taxes {
         LU("Luxembourg", 0.58),
         MT("Malte", 0.43);
 
-        private final String name;
+        private final String frenchName;
         private final double populationInMillions;
 
         Country(String name, double populationInMillions) {
-            this.name = name;
+            this.frenchName = name;
             this.populationInMillions = populationInMillions;
         }
 
         public double populationInMillions() {
             return populationInMillions;
+        }
+
+        public String frenchName() {
+            return frenchName;
         }
     }
 

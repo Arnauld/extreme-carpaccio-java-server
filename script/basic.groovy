@@ -28,6 +28,16 @@ def tax(String country, fn) {
 
 // ----------------------------------------------------------------------------
 //
+// VERSION
+//
+// ----------------------------------------------------------------------------
+
+// hint field to check in log if your configuration have been reloaded
+
+version="1.0.0"
+
+// ----------------------------------------------------------------------------
+//
 // QUESTIONS
 //
 // ----------------------------------------------------------------------------
@@ -42,7 +52,7 @@ questions = [
                 ["an identity element", "a binary associative operation", "a milkshake", "the sinus operator", "a ternary bijective operator"],
                 { s ->
                     def xs = (s.split(",") as List).stream().map({ x -> x.trim() }).collect(Collectors.toList())
-                    xs.containsAll("an identity element", "a binary associative operation")
+                    xs.containsAll("an identity element", "a binary associative operation") && xs.size() == 2
                 })
 ]
 
@@ -52,8 +62,11 @@ questions = [
 //
 // ----------------------------------------------------------------------------
 
+taxActivated=true
+
 taxes = [
-        tax("FR", { d -> d * 1.5 }),
+        tax("_FR", { d -> d * 1.5 }),
+        tax("NL", { d -> d + 500.0 }),
         tax("UK", { d -> if (d > 100) d * 1.8 else d * 1.9 }),
         tax("ES", { d -> if (d > 100) d * 1.8 else d * 1.9 })
 ]

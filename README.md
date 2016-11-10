@@ -40,3 +40,29 @@ Player registration -----> |                         |                          
 * [ ] Dashboard add code review ranking
 * [ ] Feedback invocation / Question#accept => Question#diagnose to send a relevant feedback message
 * [ ] Bad requests
+* [ ] No random on ReductionMode; keep Standard on start, then eventually change it afterwards
+
+
+## Protocol
+
+### Question
+
+```
+{
+ "quantities" : [1, 3, 6, 2],
+ "prices" : [1.2, 3.6, 7.5, 8.2],
+ "reduction": "Standard|HalfPrice|PayThePrice",
+ "country": "NL"
+}
+```
+
+
+### Response
+
+```
+{"total":12.3}
+```
+
+```
+{"response":"erlang"}
+```

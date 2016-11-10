@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.DoubleUnaryOperator;
 
@@ -23,6 +24,7 @@ import java.util.function.DoubleUnaryOperator;
 public class QuestionGeneratorReloadable implements QuestionGenerator {
 
     private static final Logger LOG = LoggerFactory.getLogger(QuestionGeneratorReloadable.class);
+    private static final double DEFAULT_QUESTION_PROBA = 0.1;
 
     private final Randomizator randomizator;
     private final File scriptFile;
@@ -31,6 +33,7 @@ public class QuestionGeneratorReloadable implements QuestionGenerator {
 
     private List<TaxDef> taxDefs;
     private List<QuestionMultipleChoice> questions;
+    private double questionsProba = DEFAULT_QUESTION_PROBA;
 
     public QuestionGeneratorReloadable(Randomizator randomizator, File scriptFile) {
         this(randomizator, scriptFile, Taxes.defaultTaxes());
@@ -48,7 +51,7 @@ public class QuestionGeneratorReloadable implements QuestionGenerator {
         reloadConfigurationIfRequired();
 
         double p = randomizator.randomDouble();
-        if (p < 0.3 && questions != null && !questions.isEmpty()) {
+        if (p < questionsProba && questions != null && !questions.isEmpty()) {
             return randomizator.pickOne(questions);
         }
 
@@ -81,7 +84,6 @@ public class QuestionGeneratorReloadable implements QuestionGenerator {
         return taxes.taxOf(country);
     }
 
-    @SuppressWarnings("unchecked")
     private void reloadConfigurationIfRequired() {
         if (!scriptFile.exists())
             throw new IllegalStateException("Script file does not exists '" + scriptFile.getAbsolutePath() + "'");
@@ -96,11 +98,22 @@ public class QuestionGeneratorReloadable implements QuestionGenerator {
 
             try (InputStreamReader in = new InputStreamReader(new FileInputStream(scriptFile))) {
                 engine.eval(in);
-                taxDefs = (List<TaxDef>) engine.get("taxes");
-                questions = (List<QuestionMultipleChoice>) engine.get("questions");
+                taxDefs = getOrDefault(engine, "taxes", Collections.emptyList());
+                questions = getOrDefault(engine, "questions", Collections.emptyList());
+                questionsProba = getOrDefault(engine, "questionsProba", DEFAULT_QUESTION_PROBA);
             } catch (ScriptException | IOException e) {
                 throw new RuntimeException("Fail to load script '" + scriptFile.getAbsolutePath() + "'", e);
+            } catch (ClassCastException e) {
+                throw new RuntimeException("Invalid script type '" + scriptFile.getAbsolutePath() + "'", e);
             }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T getOrDefault(ScriptEngine engine, String key, T defaultValue) {
+        Object v = engine.get(key);
+        if (v == null)
+            return defaultValue;
+        return (T) v;
     }
 }

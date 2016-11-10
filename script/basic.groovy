@@ -32,6 +32,8 @@ def tax(String country, fn) {
 //
 // ----------------------------------------------------------------------------
 
+questionsProba = 0.1
+
 questions = [
         q("What's the name of your team?", { s -> true }),
         q("Which word in the list designate a programming language?", ["jawa", "jaba", "java"], "java"),

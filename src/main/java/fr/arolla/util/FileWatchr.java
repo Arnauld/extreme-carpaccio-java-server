@@ -18,13 +18,11 @@ public class FileWatchr {
 
     private static final Logger log = LoggerFactory.getLogger(FileWatchr.class);
     private final File file;
+    //
     private String md5;
-    private long lastModified;
 
     public FileWatchr(File file) {
         this.file = file;
-        this.lastModified = file.lastModified();
-        this.md5 = md5(file);
     }
 
     private static String md5(File file) {
@@ -37,20 +35,16 @@ public class FileWatchr {
             }
             return Base64.getEncoder().encodeToString(digest.digest());
         } catch (IOException | NoSuchAlgorithmException e) {
-            log.error("Fail to calculate md( of {}", file.getAbsolutePath(), e);
+            log.error("Fail to calculate md5 of '{}'", file.getAbsolutePath(), e);
             return UUID.randomUUID().toString();
         }
     }
 
     public boolean hasChanged() {
-        long currentModified = file.lastModified();
-        long previousModified = this.lastModified;
-        this.lastModified = currentModified;
-
         String currentMd5 = md5(file);
         String previousMd5 = this.md5;
         this.md5 = currentMd5;
 
-        return !currentMd5.equals(previousMd5);
+        return previousMd5 == null || !currentMd5.equals(previousMd5);
     }
 }

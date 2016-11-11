@@ -1,9 +1,17 @@
 package fr.arolla.core;
 
+import javax.validation.constraints.NotNull;
+import java.util.Optional;
+
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
 public interface Question {
+
+    interface Response {
+        <T> Optional<T> get(String key, Class<T> type);
+    }
+
     /**
      * Data that should be (serialized and) sent to the player.
      */
@@ -12,7 +20,7 @@ public interface Question {
     /**
      * Validate the response of the question.
      */
-    boolean accepts(Double total, String response);
+    boolean accepts(@NotNull Response response);
 
     /**
      * Indicates whether or not the response of the question should be invalid.
@@ -24,7 +32,7 @@ public interface Question {
      * Amount earned if the answer is accepted.
      * It is up to the question to determinate this amount, based on the question difficulty for example.
      *
-     * @see #accepts(Double, String)
+     * @see #accepts(Response)
      */
     double gainAmount();
 
@@ -32,7 +40,7 @@ public interface Question {
      * Amount lost if the answer is not accepted
      * It is up to the question to determinate this amount, based on the question difficulty for example.
      *
-     * @see #accepts(Double, String)
+     * @see #accepts(Response)
      */
     double lossPenalty();
 }

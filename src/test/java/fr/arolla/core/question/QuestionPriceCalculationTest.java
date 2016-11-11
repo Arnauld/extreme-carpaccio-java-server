@@ -2,10 +2,11 @@ package fr.arolla.core.question;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.arolla.core.Question;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.function.DoubleUnaryOperator;
-import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,7 +23,7 @@ public class QuestionPriceCalculationTest {
                 new QuestionPriceCalculation(
                         quantities,
                         prices,
-                        Taxes.Country.FR,
+                        Country.FR,
                         ReductionMode.HalfPrice,
                         taxFn,
                         reductionFn);
@@ -41,7 +42,7 @@ public class QuestionPriceCalculationTest {
                 new QuestionPriceCalculation(
                         quantities,
                         prices,
-                        Taxes.Country.FR,
+                        Country.FR,
                         ReductionMode.HalfPrice,
                         taxFn,
                         reductionFn);
@@ -64,13 +65,13 @@ public class QuestionPriceCalculationTest {
                 new QuestionPriceCalculation(
                         quantities,
                         prices,
-                        Taxes.Country.FR,
+                        Country.FR,
                         ReductionMode.HalfPrice,
                         taxFn,
                         reductionFn);
 
         double total = reductionFn.applyAsDouble(taxFn.applyAsDouble(1 * 1.0 + 2 * 2.0 + 3 * 3.0 + 4 * 4.0));
-        assertThat(q.accepts(total, null)).isTrue();
+        assertThat(q.accepts(r(total))).isTrue();
     }
 
     @Test
@@ -82,12 +83,22 @@ public class QuestionPriceCalculationTest {
                 new QuestionPriceCalculation(
                         quantities,
                         prices,
-                        Taxes.Country.FR,
+                        Country.FR,
                         ReductionMode.HalfPrice,
                         taxFn,
                         reductionFn);
 
         double total = 0.0d;
-        assertThat(q.accepts(total, null)).isTrue();
+        assertThat(q.accepts(r(total))).isTrue();
     }
+
+
+    private static Question.Response r(Object content) {
+        return new ResponseSupport("total", content);
+    }
+
+    private static Question.Response r() {
+        return new ResponseSupport(Collections.emptyMap());
+    }
+
 }

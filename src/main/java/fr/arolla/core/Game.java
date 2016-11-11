@@ -1,5 +1,6 @@
 package fr.arolla.core;
 
+import fr.arolla.util.Randomizator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ public class Game {
     private final Players players;
     private final QuestionGenerator questionGenerator;
     private final QuestionDispatcher dispatcher;
+    private final Randomizator randomizator;
     private double offlinePenalty = -500.0d;
     private double errorPenalty = -450.0d;
 
@@ -28,11 +30,13 @@ public class Game {
     public Game(GameListener listener,
                 Players players,
                 QuestionGenerator questionGenerator,
-                QuestionDispatcher dispatcher) {
+                QuestionDispatcher dispatcher,
+                Randomizator randomizator) {
         this.listener = listener;
         this.players = players;
         this.questionGenerator = questionGenerator;
         this.dispatcher = dispatcher;
+        this.randomizator = randomizator;
     }
 
     public Game withOfflinePenalty(double offlinePenalty) {
@@ -48,7 +52,7 @@ public class Game {
     public void processIteration(int tick) {
         listener.iterationStarting(tick);
 
-        Question q = questionGenerator.nextQuestion(tick);
+        Question q = questionGenerator.nextQuestion(tick, randomizator);
         List<Observable<QuestionOfPlayer>> dispatched =
                 players.all()
                         .map(p -> dispatch(tick, q, p))

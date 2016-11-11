@@ -1,5 +1,7 @@
 package fr.arolla.core;
 
+import fr.arolla.core.question.ResponseSupport;
+import fr.arolla.util.Randomizator;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -7,6 +9,7 @@ import org.mockito.invocation.InvocationOnMock;
 import rx.Observable;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,7 +28,8 @@ public class GameTest {
     private Player p1, p2;
     //
     private QuestionOfPlayer.Status[] qopStatus;
-    private String[] responseValues;
+    private Question.Response[] responseValues;
+    private Randomizator randomizator;
 
     @Before
     public void setUp() {
@@ -36,8 +40,9 @@ public class GameTest {
         players = mock(Players.class);
         questionGenerator = mock(QuestionGenerator.class);
         dispatcher = mock(QuestionDispatcher.class);
+        randomizator = new Randomizator();
 
-        game = new Game(listener, players, questionGenerator, dispatcher);
+        game = new Game(listener, players, questionGenerator, dispatcher, randomizator);
     }
 
     @Test
@@ -52,9 +57,9 @@ public class GameTest {
         // suppose everyone answered with an OK response...
         qopStatus = array(QuestionOfPlayer.Status.OK, QuestionOfPlayer.Status.OK);
         // ... but with different responses
-        responseValues = array("Vlad", "Duke");
+        responseValues = array(r("Vlad"), r("Duke"));
 
-        when(questionGenerator.nextQuestion(anyInt())).thenReturn(question);
+        when(questionGenerator.nextQuestion(anyInt(), any(Randomizator.class))).thenReturn(question);
         when(players.all()).thenReturn(Arrays.asList(p1, p2).stream());
         when(dispatcher.dispatchQuestion(anyInt(), any(Question.class), any(Player.class)))
                 .then(invocation -> fakeDispatch(invocationCount.getAndIncrement(), invocation));
@@ -86,9 +91,9 @@ public class GameTest {
         // suppose everyone answered with an OK response...
         qopStatus = array(QuestionOfPlayer.Status.OK, QuestionOfPlayer.Status.OK);
         // ... but with different responses
-        responseValues = array("Vlad", "Duke");
+        responseValues = array(r("Vlad"), r("Duke"));
 
-        when(questionGenerator.nextQuestion(anyInt())).thenReturn(question);
+        when(questionGenerator.nextQuestion(anyInt(), any(Randomizator.class))).thenReturn(question);
         when(players.all()).thenReturn(Arrays.asList(p1, p2).stream());
         when(dispatcher.dispatchQuestion(anyInt(), any(Question.class), any(Player.class)))
                 .then(invocation -> fakeDispatch(invocationCount.getAndIncrement(), invocation));
@@ -122,7 +127,7 @@ public class GameTest {
         QuestionOfPlayer qop =
                 new QuestionOfPlayer((Question) arguments[1], (Player) arguments[2])
                         .withStatus(qopStatus[invocationCount])
-                        .withResponse(0.0d, responseValues[invocationCount]);
+                        .withResponse(responseValues[invocationCount]);
         return Observable.just(qop);
     }
 
@@ -130,4 +135,12 @@ public class GameTest {
         return xs;
     }
 
+
+    private static Question.Response r(Object content) {
+        return new ResponseSupport("response", content);
+    }
+
+    private static Question.Response r() {
+        return new ResponseSupport(Collections.emptyMap());
+    }
 }

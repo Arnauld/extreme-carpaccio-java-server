@@ -2,6 +2,7 @@ package fr.arolla.core.question;
 
 import fr.arolla.core.Question;
 
+import javax.annotation.Nonnull;
 import java.util.function.DoubleUnaryOperator;
 
 /**
@@ -14,10 +15,10 @@ public class QuestionPriceCalculation extends QuestionSupport implements Questio
     public static class Data {
         public final int[] quantities;
         public final double[] prices;
-        public final Taxes.Country country;
+        public final Country country;
         public final ReductionMode reductionMode;
 
-        public Data(int[] quantities, double[] prices, Taxes.Country country, ReductionMode reductionMode) {
+        public Data(int[] quantities, double[] prices, Country country, ReductionMode reductionMode) {
             this.quantities = quantities;
             this.prices = prices;
             this.country = country;
@@ -31,7 +32,7 @@ public class QuestionPriceCalculation extends QuestionSupport implements Questio
 
     public QuestionPriceCalculation(int[] quantities,
                                     double[] prices,
-                                    Taxes.Country country,
+                                    Country country,
                                     ReductionMode reductionMode,
                                     DoubleUnaryOperator taxFn,
                                     DoubleUnaryOperator reductionFn) {
@@ -54,8 +55,11 @@ public class QuestionPriceCalculation extends QuestionSupport implements Questio
     }
 
     @Override
-    public boolean accepts(Double total, String response) {
-        return response==null && total != null && isTotalCorrect(total);
+    public boolean accepts(@Nonnull Response response) {
+        return response
+                .get("total", Double.class)
+                .map(this::isTotalCorrect)
+                .orElse(false);
     }
 
     private boolean isTotalCorrect(double actualTotal) {

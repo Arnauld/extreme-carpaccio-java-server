@@ -1,13 +1,13 @@
 package fr.arolla.infra;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.arolla.core.Player;
 import fr.arolla.core.Question;
 import fr.arolla.core.QuestionDispatcher;
 import fr.arolla.core.QuestionOfPlayer;
+import fr.arolla.core.question.ResponseSupport;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import rx.Observable;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -74,7 +75,7 @@ public class RxNettyQuestionDispatcher implements QuestionDispatcher {
 
     private QuestionOfPlayer consolidateResponse(QuestionOfPlayer qop, ResponseDto response) {
         log.info("Consolidating response with {}", response);
-        return qop.withStatus(response.status).withResponse(response.total, response.response);
+        return qop.withStatus(response.status).withResponse(new ResponseSupport(response.response));
     }
 
     private ResponseDto fromBytes(ByteBuf byteBuf) {
@@ -82,7 +83,9 @@ public class RxNettyQuestionDispatcher implements QuestionDispatcher {
             int len = byteBuf.readableBytes();
             byte[] bytes = new byte[len];
             byteBuf.readBytes(bytes);
-            return objectMapper.readValue(bytes, ResponseDto.class);
+            Map<String, Object> value = objectMapper.readValue(bytes, new TypeReference<Map<String, Object>>() {
+            });
+            return new ResponseDto().withResponse(value);
         } catch (IOException e) {
             log.error("Ooops while reading OrderResponseDto", e);
             return ResponseDto.error(e);
@@ -102,19 +105,14 @@ public class RxNettyQuestionDispatcher implements QuestionDispatcher {
     }
 
     public static class ResponseDto {
-        @JsonProperty
-        public Double total;
+        public Map<String, Object> response;
 
-        @JsonProperty
-        public String response;
-
-        // Transient property - ease Observable chaining
-        @JsonIgnore
         public Throwable error;
 
-        // Transient property - ease Observable chaining
-        @JsonIgnore
         public QuestionOfPlayer.Status status;
+
+        public ResponseDto() {
+        }
 
         public static ResponseDto error(Throwable err) {
             return new ResponseDto().withStatus(QuestionOfPlayer.Status.Error).withError(err);
@@ -133,6 +131,11 @@ public class RxNettyQuestionDispatcher implements QuestionDispatcher {
             return new ResponseDto().withStatus(QuestionOfPlayer.Status.Timeout);
         }
 
+        private ResponseDto withResponse(Map<String, Object> response) {
+            this.response = response;
+            return this;
+        }
+
         private ResponseDto withError(Throwable error) {
             this.error = error;
             return this;
@@ -146,7 +149,6 @@ public class RxNettyQuestionDispatcher implements QuestionDispatcher {
         @Override
         public String toString() {
             return "ResponseDto{" +
-                    "total=" + total +
                     ", response='" + response + '\'' +
                     ", error=" + error +
                     ", status=" + status +

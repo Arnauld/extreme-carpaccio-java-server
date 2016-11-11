@@ -3,6 +3,8 @@ package fr.arolla.core.question;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import fr.arolla.core.Question;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -25,15 +27,20 @@ public class QuestionMultipleChoice extends QuestionSupport implements Question 
     private final Data data;
     private final Predicate<String> validator;
 
-    public QuestionMultipleChoice(String question, List<String> choices, String response) {
+    public QuestionMultipleChoice(@Nonnull String question,
+                                  @Nonnull List<String> choices,
+                                  @Nonnull String response) {
         this(question, choices, r -> r != null && response.equalsIgnoreCase(r));
     }
 
-    public QuestionMultipleChoice(String question, Predicate<String> validator) {
+    public QuestionMultipleChoice(@Nonnull String question,
+                                  @Nonnull Predicate<String> validator) {
         this(question, null, validator);
     }
 
-    public QuestionMultipleChoice(String question, List<String> choices, Predicate<String> validator) {
+    public QuestionMultipleChoice(@Nonnull String question,
+                                  @Nullable List<String> choices,
+                                  @Nonnull Predicate<String> validator) {
         this.data = new Data(question, choices);
         this.validator = validator;
     }
@@ -44,11 +51,13 @@ public class QuestionMultipleChoice extends QuestionSupport implements Question 
     }
 
     /**
-     * @param total    must be null
      * @param response nust not be null
      */
     @Override
-    public boolean accepts(Double total, String response) {
-        return total == null && response != null && validator.test(response);
+    public boolean accepts(@Nonnull Response response) {
+        return response
+                .get("response", String.class)
+                .map(validator::test)
+                .orElse(false);
     }
 }

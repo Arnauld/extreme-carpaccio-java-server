@@ -19,8 +19,7 @@ public class QuestionOfPlayer {
     private final Question question;
     private final Player player;
     private Status status = Status.NotSent;
-    private Double total;
-    private String response;
+    private Question.Response response;
 
     public QuestionOfPlayer(Question question, Player player) {
         this.question = question;
@@ -40,14 +39,13 @@ public class QuestionOfPlayer {
         return this;
     }
 
-    public QuestionOfPlayer withResponse(Double total, String response) {
-        this.total = total;
+    public QuestionOfPlayer withResponse(Question.Response response) {
         this.response = response;
         return this;
     }
 
     public boolean isResponseAccepted() {
-        return question.accepts(total, response);
+        return question.accepts(response);
     }
 
     public boolean isInvalidQuestion() {

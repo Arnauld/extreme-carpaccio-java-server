@@ -10,7 +10,7 @@ public class TaxesTest {
         Taxes taxes = Taxes.defaultTaxes();
 
         SoftAssertions assertions = new SoftAssertions();
-        for (Taxes.Country country : Taxes.Country.values()) {
+        for (Country country : Country.values()) {
             assertions.assertThat(taxes.taxOf(country)).describedAs("Missing tax for " + country).isNotNull();
         }
 

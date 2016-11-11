@@ -1,6 +1,8 @@
 package fr.arolla.exploratory;
 
+import fr.arolla.core.Question;
 import fr.arolla.core.question.QuestionMultipleChoice;
+import fr.arolla.core.question.ResponseSupport;
 import fr.arolla.util.FileWatchr;
 import fr.arolla.util.WorkDirectory;
 import org.apache.commons.io.IOUtils;
@@ -17,6 +19,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -70,11 +73,11 @@ public class GroovyScriptTest {
         List<QuestionMultipleChoice> qs = (List<QuestionMultipleChoice>) engine.get("questions");
 
         assertThat(qs).hasSize(4);
-        assertThat(qs.get(0).accepts(null, "Belladona")).isTrue();
-        assertThat(qs.get(1).accepts(null, "java")).isTrue();
-        assertThat(qs.get(1).accepts(null, "c#")).isFalse();
-        assertThat(qs.get(2).accepts(null, "YEs")).isTrue();
-        assertThat(qs.get(3).accepts(null, "a binary associative operation, an identity element     ")).isTrue();
+        assertThat(qs.get(0).accepts(r("Belladona"))).isTrue();
+        assertThat(qs.get(1).accepts(r("java"))).isTrue();
+        assertThat(qs.get(1).accepts(r("c#"))).isFalse();
+        assertThat(qs.get(2).accepts(r("YEs"))).isTrue();
+        assertThat(qs.get(3).accepts(r("a binary associative operation, an identity element     "))).isTrue();
     }
 
     @Test(expected = ScriptException.class)
@@ -123,5 +126,18 @@ public class GroovyScriptTest {
         assertThat(taxes.get(0).taxFn.apply(100.0)).isCloseTo(500.0, EPS);
         assertThat(taxes.get(1).taxFn.apply(100.0)).isCloseTo(30.0, EPS);
         assertThat(taxes.get(2).taxFn.apply(100.0)).isCloseTo(7.0, EPS);
+    }
+
+
+    private static Question.Response r(String content) {
+        return new ResponseSupport("response", content);
+    }
+
+    private static Question.Response r(double content) {
+        return new ResponseSupport("total", content);
+    }
+
+    private static Question.Response r() {
+        return new ResponseSupport(Collections.emptyMap());
     }
 }

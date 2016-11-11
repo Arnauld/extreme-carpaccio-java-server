@@ -1,6 +1,6 @@
 package fr.arolla.util;
 
-import fr.arolla.core.question.Taxes;
+import fr.arolla.core.question.Country;
 import org.assertj.core.api.Condition;
 import org.junit.Test;
 
@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
-import static fr.arolla.core.question.Taxes.Country.*;
+import static fr.arolla.core.question.Country.*;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -80,11 +80,11 @@ public class RandomizatorTest {
 
     @Test
     public void should_pick_one_using_probability() {
-        Taxes.Country[] xs = Taxes.Country.values();
+        Country[] xs = Country.values();
 
-        EnumMap<Taxes.Country, AtomicInteger> count = new EnumMap<>(Taxes.Country.class);
+        EnumMap<Country, AtomicInteger> count = new EnumMap<>(Country.class);
         for (int i = 0; i < 500; i++) {
-            Taxes.Country x = randomizator.pickOne(xs, Taxes.Country::populationInMillions);
+            Country x = randomizator.pickOne(xs, Country::populationInMillions);
             AtomicInteger calls = count.get(x);
             if (calls == null) {
                 calls = new AtomicInteger();
@@ -93,13 +93,13 @@ public class RandomizatorTest {
             calls.incrementAndGet();
         }
 
-        Comparator<Map.Entry<Taxes.Country, AtomicInteger>> byCount = comparing(e -> e.getValue().get());
-        List<Map.Entry<Taxes.Country, AtomicInteger>> entriesSortedByPicked =
+        Comparator<Map.Entry<Country, AtomicInteger>> byCount = comparing(e -> e.getValue().get());
+        List<Map.Entry<Country, AtomicInteger>> entriesSortedByPicked =
                 count.entrySet().stream()
                         .sorted(byCount.reversed())
                         .collect(toList());
 
-        List<Taxes.Country> countriesSortedByPicked = entriesSortedByPicked.stream()
+        List<Country> countriesSortedByPicked = entriesSortedByPicked.stream()
                 .map(Map.Entry::getKey)
                 .collect(toList());
         assertThat(countriesSortedByPicked.subList(0, 6)).contains(DE, FR, UK, IT, ES, PL);

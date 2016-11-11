@@ -18,8 +18,10 @@ public class QuestionString implements Question {
     }
 
     @Override
-    public boolean accepts(Double total, String response) {
-        return response != null && response.equals(value);
+    public boolean accepts(Response response) {
+        return response.get("response", String.class)
+                .map(r -> r.equals(value))
+                .orElse(false);
     }
 
     @Override

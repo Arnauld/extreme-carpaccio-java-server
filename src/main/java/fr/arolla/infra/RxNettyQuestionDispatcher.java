@@ -85,6 +85,7 @@ public class RxNettyQuestionDispatcher implements QuestionDispatcher {
             byteBuf.readBytes(bytes);
             Map<String, Object> value = objectMapper.readValue(bytes, new TypeReference<Map<String, Object>>() {
             });
+            log.debug("Data read from bytes: {}", value);
             return new ResponseDto().withResponse(value);
         } catch (IOException e) {
             log.error("Ooops while reading OrderResponseDto", e);

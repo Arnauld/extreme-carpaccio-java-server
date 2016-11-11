@@ -12,6 +12,12 @@ public interface Question {
         <T> Optional<T> get(String key, Class<T> type);
     }
 
+    interface ResponseValidation {
+        boolean accepted();
+
+        String diagnostic();
+    }
+
     /**
      * Data that should be (serialized and) sent to the player.
      */

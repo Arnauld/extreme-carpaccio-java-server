@@ -36,7 +36,7 @@ public class QuestionConfiguration {
             return generatorBasic;
         } else {
             LOG.info("Question generator in advanced mode using script at '{}'", scriptFile);
-            return wrapWithFallback(new QuestionGeneratorReloadable(scriptFile), generatorBasic);
+            return wrapWithFallback(new QuestionGeneratorScriptBased(scriptFile), generatorBasic);
         }
     }
 

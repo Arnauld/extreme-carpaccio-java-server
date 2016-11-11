@@ -23,6 +23,7 @@ public class FileWatchr {
 
     public FileWatchr(File file) {
         this.file = file;
+        this.md5 = md5(file);
     }
 
     private static String md5(File file) {

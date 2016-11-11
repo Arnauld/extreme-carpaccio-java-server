@@ -21,12 +21,11 @@ import java.util.function.DoubleUnaryOperator;
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
-public class QuestionGeneratorReloadable implements QuestionGenerator {
+public class QuestionGeneratorBasicReloadable implements QuestionGenerator {
 
-    private static final Logger LOG = LoggerFactory.getLogger(QuestionGeneratorReloadable.class);
+    private static final Logger LOG = LoggerFactory.getLogger(QuestionGeneratorBasicReloadable.class);
     private static final double DEFAULT_QUESTION_PROBA = 0.1;
 
-    private final Randomizator randomizator;
     private final File scriptFile;
     private final Taxes taxes;
     private final FileWatchr fileWatchr;
@@ -36,19 +35,18 @@ public class QuestionGeneratorReloadable implements QuestionGenerator {
     private double questionsProba = DEFAULT_QUESTION_PROBA;
     private boolean taxActivated;
 
-    public QuestionGeneratorReloadable(Randomizator randomizator, File scriptFile) {
-        this(randomizator, scriptFile, Taxes.defaultTaxes());
+    public QuestionGeneratorBasicReloadable(File scriptFile) {
+        this(scriptFile, Taxes.defaultTaxes());
     }
 
-    public QuestionGeneratorReloadable(Randomizator randomizator, File scriptFile, Taxes taxes) {
-        this.randomizator = randomizator;
+    public QuestionGeneratorBasicReloadable(File scriptFile, Taxes taxes) {
         this.scriptFile = scriptFile;
         this.taxes = taxes;
         this.fileWatchr = new FileWatchr(scriptFile);
     }
 
     @Override
-    public Question nextQuestion(int tick) {
+    public Question nextQuestion(int tick, Randomizator randomizator) {
         reloadConfigurationIfRequired();
 
         double p = randomizator.randomDouble();
@@ -56,14 +54,14 @@ public class QuestionGeneratorReloadable implements QuestionGenerator {
             return randomizator.pickOne(questions);
         }
 
-        return randomPriceQuestion();
+        return randomPriceQuestion(randomizator);
     }
 
-    private Question randomPriceQuestion() {
+    private Question randomPriceQuestion(Randomizator randomizator) {
         int sz = randomizator.randomInt(5);
         int[] quantities = randomizator.randomPositiveInts(sz, 10);
         double[] prices = randomizator.randomPositiveDoubles(sz, 100.0d);
-        Taxes.Country country = randomizator.pickOne(taxes.countries(), Taxes.Country::populationInMillions);
+        Country country = randomizator.pickOne(taxes.countries(), Country::populationInMillions);
 
         DoubleUnaryOperator taxFn = taxFn(country);
 
@@ -74,7 +72,7 @@ public class QuestionGeneratorReloadable implements QuestionGenerator {
                 reductionMode::applyReduction);
     }
 
-    private DoubleUnaryOperator taxFn(Taxes.Country country) {
+    private DoubleUnaryOperator taxFn(Country country) {
         if(!taxActivated)
             return d -> d;
 

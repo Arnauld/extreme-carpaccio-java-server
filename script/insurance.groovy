@@ -1,3 +1,10 @@
+//
+// Three fields need to be defined and will be retrieved from loading the script
+//
+// * version
+// * weight
+// * generator
+//
 import com.fasterxml.jackson.annotation.JsonFormat
 import fr.arolla.core.Question
 import fr.arolla.core.QuestionGenerator

@@ -1,3 +1,10 @@
+//
+// Three fields need to be defined and will be retrieved from loading the script
+//
+// * version
+// * weight
+// * generator
+//
 import fr.arolla.core.question.TaxDef
 
 // ----------------------------------------------------------------------------

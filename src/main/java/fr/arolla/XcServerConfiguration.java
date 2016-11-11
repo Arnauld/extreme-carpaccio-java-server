@@ -14,10 +14,6 @@ import org.springframework.context.annotation.Primary;
 @Configuration
 public class XcServerConfiguration {
 
-    @Autowired
-    public XcServerConfiguration() {
-    }
-
     @Bean
     @Primary
     public ObjectMapper configureMapper() {

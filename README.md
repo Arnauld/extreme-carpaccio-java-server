@@ -51,24 +51,50 @@ Player registration -----> |                         |                          
 
 ## Protocol
 
-### Question
+### Price with tax
 
-```
+```javascript
 {
- "quantities" : [1, 3, 6, 2],
- "prices" : [1.2, 3.6, 7.5, 8.2],
- "reduction": "Standard|HalfPrice|PayThePrice",
- "country": "NL"
+  "quantities" : [1, 3, 6, 2],
+  "prices" : [1.2, 3.6, 7.5, 8.2],
+  "reduction": "Standard|HalfPrice|PayThePrice",
+  "country": "NL"
 }
 ```
 
+```javascript
+{
+  "total":12.3
+}
+```
 
-### Response
+### Question
 
 ```
-{"total":12.3}
+{}
 ```
 
 ```
-{"response":"erlang"}
+{
+  "response":"erlang"
+}
+```
+
+### Insurrance
+
+```javascript
+{
+  "country":"PL",
+  "departureDate":"2016-11-15",
+  "returnDate":"2016-12-09",
+  "travellerAges":[32,39],
+  "options":["SportsAndActivities","MedicalConditions"],
+  "cover":"Premier"
+}
+```
+
+```javascript
+{
+  "quote": 
+}
 ```

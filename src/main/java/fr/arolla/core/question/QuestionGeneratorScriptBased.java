@@ -18,15 +18,15 @@ import java.io.InputStreamReader;
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
-public class QuestionGeneratorReloadable implements QuestionGenerator {
+public class QuestionGeneratorScriptBased implements QuestionGenerator {
 
-    private static final Logger LOG = LoggerFactory.getLogger(QuestionGeneratorReloadable.class);
+    private static final Logger LOG = LoggerFactory.getLogger(QuestionGeneratorScriptBased.class);
 
     private final File scriptFile;
     private final FileWatchr fileWatchr;
     private QuestionGenerator generator;
 
-    public QuestionGeneratorReloadable(File scriptFile) {
+    public QuestionGeneratorScriptBased(File scriptFile) {
         this.scriptFile = scriptFile;
         this.fileWatchr = new FileWatchr(scriptFile);
     }

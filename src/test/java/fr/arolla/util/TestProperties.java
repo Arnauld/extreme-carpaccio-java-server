@@ -1,5 +1,6 @@
 package fr.arolla.util;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Properties;
@@ -21,9 +22,13 @@ public class TestProperties {
         return this;
     }
 
-    public String getWorkingDirectory() {
-        return properties.getProperty("work.dir");
+    public File getWorkingDirectory() {
+        return new File(properties.getProperty("work.dir"));
 
+    }
+
+    public File getScriptDirectory() {
+        return new File(properties.getProperty("script.dir"));
     }
 
     private Properties loadProperties() {

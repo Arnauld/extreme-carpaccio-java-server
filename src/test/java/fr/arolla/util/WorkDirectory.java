@@ -34,7 +34,7 @@ public class WorkDirectory extends ExternalResource {
 
     public File dir() {
         if (dir == null) {
-            String baseDir = TestProperties.get().getWorkingDirectory();
+            File baseDir = TestProperties.get().getWorkingDirectory();
             dir = new File(baseDir, "tmp/" + new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date()) + "-" + idGen.incrementAndGet());
             if (!dir.mkdirs())
                 throw new RuntimeException("Fail to create temporary directory at '" + dir.getAbsolutePath() + "'");

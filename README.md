@@ -14,7 +14,9 @@ $ mvn clean install
 Overrides configuration with VM argument.
 
 ```
--DquestionGenerator.scriptPath=/Users/Arnauld/Projects/extreme-carpaccio-springboot/script/basic.groovy
+-DquestionGenerator.scriptPaths=/Users/Arnauld/Projects/extreme-carpaccio-springboot/script/questions.groovy,\
+                                /Users/Arnauld/Projects/extreme-carpaccio-springboot/script/priceWithTax.groovy,\
+                                /Users/Arnauld/Projects/extreme-carpaccio-springboot/script/insurance.groovy
 ```
 
 ## Architecture

@@ -1,5 +1,7 @@
+import fr.arolla.core.Question
+import fr.arolla.core.QuestionGenerator
 import fr.arolla.core.question.QuestionMultipleChoice
-import fr.arolla.core.question.TaxDef
+import fr.arolla.util.Randomizator
 
 import java.util.function.Predicate
 import java.util.stream.Collectors
@@ -22,10 +24,6 @@ def q(String question, List<String> choices, Predicate<String> validator) {
     return new QuestionMultipleChoice(question, choices, validator)
 }
 
-def tax(String country, fn) {
-    return new TaxDef(country, { x -> fn(x) as double })
-}
-
 // ----------------------------------------------------------------------------
 //
 // VERSION
@@ -34,7 +32,15 @@ def tax(String country, fn) {
 
 // hint field to check in log if your configuration have been reloaded
 
-version="1.0.0"
+version = "1.0.1"
+
+// ----------------------------------------------------------------------------
+//
+// WEIGHT
+//
+// ----------------------------------------------------------------------------
+
+weight = 0.9 as double
 
 // ----------------------------------------------------------------------------
 //
@@ -42,9 +48,7 @@ version="1.0.0"
 //
 // ----------------------------------------------------------------------------
 
-questionsProba = 0.1
-
-questions = [
+def questions = [
         q("What's the name of your team?", { s -> true }),
         q("Which word in the list designate a programming language?", ["jawa", "jaba", "java"], "java"),
         q("Is this expression valid: '2+4i'?", ['yes', 'no'], "yes"),
@@ -54,19 +58,17 @@ questions = [
                     def xs = (s.split(",") as List).stream().map({ x -> x.trim() }).collect(Collectors.toList())
                     xs.containsAll("an identity element", "a binary associative operation") && xs.size() == 2
                 })
-]
+] as List
 
-// ----------------------------------------------------------------------------
-//
-// TAXES
-//
-// ----------------------------------------------------------------------------
 
-taxActivated=true
+public class QuestionChoiceGenerator implements QuestionGenerator {
 
-taxes = [
-        tax("_FR", { d -> d * 1.5 }),
-        tax("NL", { d -> d + 500.0 }),
-        tax("UK", { d -> if (d > 100) d * 1.8 else d * 1.9 }),
-        tax("ES", { d -> if (d > 100) d * 1.8 else d * 1.9 })
-]
+    List<QuestionMultipleChoice> questions
+
+    @Override
+    Question nextQuestion(int tick, Randomizator randomizator) {
+        return randomizator.pickOne(questions)
+    }
+}
+
+generator = new QuestionChoiceGenerator(questions: questions)

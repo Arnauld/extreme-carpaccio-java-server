@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.File;
+import java.util.stream.Stream;
 
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
@@ -19,25 +20,37 @@ public class QuestionConfiguration {
     private final static Logger LOG = LoggerFactory.getLogger(QuestionConfiguration.class);
 
     private final boolean basicMode;
-    private final File scriptFile;
+    private final String scriptPaths;
 
     @Autowired
     public QuestionConfiguration(@Value("${questionGenerator.basic:true}") boolean basicMode,
-                                 @Value("${questionGenerator.scriptPath:}") File scriptFile) {
+                                 @Value("${questionGenerator.scriptPaths:}") String scriptPaths) {
         this.basicMode = basicMode;
-        this.scriptFile = scriptFile;
+        this.scriptPaths = scriptPaths;
     }
 
     @Bean
     public QuestionGenerator questionGenerator() {
         QuestionGeneratorBasic generatorBasic = new QuestionGeneratorBasic();
         if (basicMode) {
-            LOG.info("Question generator in basic mode");
+            LOG.info("Question generator in priceWithTax mode");
             return generatorBasic;
         } else {
-            LOG.info("Question generator in advanced mode using script at '{}'", scriptFile);
-            return wrapWithFallback(new QuestionGeneratorScriptBased(scriptFile), generatorBasic);
+            QuestionGeneratorComposite composite = new QuestionGeneratorComposite();
+            Stream.of(scriptPaths.split(","))
+                    .map(File::new)
+                    .map(this::logGeneratorFile)
+                    .map(QuestionGeneratorScriptBased::new)
+                    .forEach(q -> composite.register(q, q));
+
+            LOG.info("Composite Question generator based on path {}", scriptPaths);
+            return wrapWithFallback(composite, generatorBasic);
         }
+    }
+
+    private File logGeneratorFile(File file) {
+        LOG.info("Question generator based on {}", file.getAbsolutePath());
+        return file;
     }
 
     private static QuestionGenerator wrapWithFallback(QuestionGenerator primary, QuestionGenerator secondary) {

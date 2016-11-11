@@ -72,7 +72,7 @@ public class Randomizator {
                 return value;
         }
 
-        // ok, rely on basic random
+        // ok, rely on priceWithTax random
         return pickOne(values);
     }
 

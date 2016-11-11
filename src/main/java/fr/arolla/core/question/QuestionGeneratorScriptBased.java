@@ -18,13 +18,17 @@ import java.io.InputStreamReader;
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
-public class QuestionGeneratorScriptBased implements QuestionGenerator {
+public class QuestionGeneratorScriptBased implements QuestionGenerator, HasWeight {
 
     private static final Logger LOG = LoggerFactory.getLogger(QuestionGeneratorScriptBased.class);
 
     private final File scriptFile;
     private final FileWatchr fileWatchr;
+    //
+    private int checkedTick = -1;
+    //
     private QuestionGenerator generator;
+    private double weight;
 
     public QuestionGeneratorScriptBased(File scriptFile) {
         this.scriptFile = scriptFile;
@@ -32,12 +36,22 @@ public class QuestionGeneratorScriptBased implements QuestionGenerator {
     }
 
     @Override
+    public double weight(int tick) {
+        reloadConfigurationIfRequired(tick);
+        return weight;
+    }
+
+    @Override
     public Question nextQuestion(int tick, Randomizator randomizator) {
-        reloadConfigurationIfRequired();
+        reloadConfigurationIfRequired(tick);
         return generator.nextQuestion(tick, randomizator);
     }
 
-    private void reloadConfigurationIfRequired() {
+    private void reloadConfigurationIfRequired(int tick) {
+        if (checkedTick == tick)
+            return;
+        checkedTick = tick;
+
         if (!scriptFile.exists())
             throw new IllegalStateException("Script file does not exists '" + scriptFile.getAbsolutePath() + "'");
 
@@ -51,6 +65,7 @@ public class QuestionGeneratorScriptBased implements QuestionGenerator {
             try (InputStreamReader in = new InputStreamReader(new FileInputStream(scriptFile))) {
                 engine.eval(in);
                 generator = (QuestionGenerator) engine.get("generator");
+                weight = getOrDefault(engine, "weight", 0.5);
 
                 String version = getOrDefault(engine, "version", "?");
                 LOG.info("Configuration reloaded, version {}", version);

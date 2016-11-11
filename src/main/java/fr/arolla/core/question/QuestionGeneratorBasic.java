@@ -12,7 +12,6 @@ public class QuestionGeneratorBasic implements QuestionGenerator {
 
     private final Taxes taxes;
 
-    @Autowired
     public QuestionGeneratorBasic() {
         this(Taxes.defaultTaxes());
     }

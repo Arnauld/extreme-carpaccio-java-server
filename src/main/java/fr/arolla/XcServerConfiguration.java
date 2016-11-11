@@ -1,48 +1,32 @@
 package fr.arolla;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import fr.arolla.core.Event;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import javax.annotation.PostConstruct;
+import org.springframework.context.annotation.Primary;
 
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
 @Configuration
 public class XcServerConfiguration {
-    private final Logger eventLog = LoggerFactory.getLogger("fr.arolla.events");
-    private final Logger log = LoggerFactory.getLogger(XcServerConfiguration.class);
-
-    private final Event.Bus eventBus;
-    private final ObjectMapper mapper;
 
     @Autowired
-    public XcServerConfiguration(Event.Bus eventBus, ObjectMapper mapper) {
-        this.eventBus = eventBus;
-        this.mapper = mapper;
+    public XcServerConfiguration() {
     }
 
-    @PostConstruct
-    public void configureMapper() {
+    @Bean
+    @Primary
+    public ObjectMapper configureMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true);
         mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, true);
-    }
 
-    @PostConstruct
-    public void logEvents() {
-        eventBus.subscribe(this::logEvent);
-    }
-
-    private void logEvent(Event e) {
-        try {
-            eventLog.info("{}", mapper.writeValueAsString(e));
-        } catch (JsonProcessingException err) {
-            log.warn("Fail to publish event {}", e, err);
-        }
+        JavaTimeModule module = new JavaTimeModule();
+        mapper.registerModule(module);
+        return mapper;
     }
 }

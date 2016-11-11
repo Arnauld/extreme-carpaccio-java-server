@@ -38,7 +38,7 @@ Player registration -----> |                         |                          
 ## Notes
 
 * [x] Dashboard add code review ranking: Web Page; - Y.
-* [ ] No random on ReductionMode; keep Standard on start, then eventually change it afterwards
+* [ ] No random on ReductionMode; keep Standard on start, then eventually change it afterwards
 * [ ] Feedback invocation / Question#accept => Question#diagnose to send a relevant feedback message
 * [x] API Events - F.
 

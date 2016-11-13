@@ -116,3 +116,9 @@ Player registration -----> |                         |                          
   "options":["SportsAndActivities","MedicalConditions"]
 }
 ```
+# Inspirations
+
+* https://diegolemos.net/2016/01/07/extreme-carpaccio/
+* [extreme-carpaccio - github](https://github.com/dlresende/extreme-carpaccio)
+* http://chatley.com/posts/05-27-2011/extreme-startup/
+* [rchatley - github](https://github.com/rchatley/extreme_startup/blob/master/lib/extreme_startup/question_factory.rb)

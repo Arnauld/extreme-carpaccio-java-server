@@ -6,14 +6,11 @@ import fr.arolla.core.Question;
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
-public class QuestionDispatchedEvent extends TypedEvent implements Event {
-    public final int tick;
+public class QuestionDispatchedEvent extends IdentifiableEvent implements Event {
     public final Question q;
-    public final String username;
 
     public QuestionDispatchedEvent(int tick, Question q, String username) {
-        this.tick = tick;
+        super(username, tick);
         this.q = q;
-        this.username = username;
     }
 }

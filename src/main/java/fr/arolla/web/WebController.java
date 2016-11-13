@@ -4,18 +4,17 @@ import fr.arolla.command.RegistrationCommand;
 import fr.arolla.core.Event;
 import fr.arolla.core.Players;
 import fr.arolla.core.Ticker;
+import fr.arolla.core.event.Events;
+import fr.arolla.core.event.IdentifiableEvent;
 import fr.arolla.web.dto.CashHistoriesDto;
 import fr.arolla.web.dto.PlayerOfListAllDto;
 import fr.arolla.web.dto.PlayerRegistrationDto;
+import fr.arolla.web.dto.SellerEventsDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,15 +25,17 @@ public class WebController {
 
     private final Logger log = LoggerFactory.getLogger(WebController.class);
 
+    private Events eventsHistory;
     private final Players players;
     private final Ticker ticker;
     private final Event.Publisher eventPublisher;
 
     @Autowired
-    public WebController(Players players, Ticker ticker, Event.Publisher eventPublisher) {
+    public WebController(Players players, Ticker ticker, Event.Publisher eventPublisher,Events eventRepository) {
         this.players = players;
         this.ticker = ticker;
         this.eventPublisher = eventPublisher;
+        this.eventsHistory=eventRepository;
     }
 
     @RequestMapping(value = "/sellers", method = RequestMethod.GET)
@@ -77,6 +78,22 @@ public class WebController {
                 .withPassword(dto.password)
                 .withUrl(dto.url)
                 .execute();
+    }
+
+    @RequestMapping(value = "/events", method = RequestMethod.GET)
+    public SellerEventsDto retrieveEvents(@RequestParam("fromTick") Optional<Integer> fromTick) {
+        log.debug("events history queried ");
+        List<IdentifiableEvent> events = fromTick
+                .map(t -> eventsHistory.search(new Events.EventQuery(t, null)))
+                .orElseGet(() -> eventsHistory.all());
+        return new SellerEventsDto(events.size(),fromTick.orElse(0),events);
+    }
+
+    @RequestMapping(value = "/events/{username}", method = RequestMethod.GET)
+    public SellerEventsDto retrieveEvents(@PathVariable("username") String username,@RequestParam("fromTick") Optional<Integer> fromTick) {
+        log.debug("events history queried ");
+        List<IdentifiableEvent> events = eventsHistory.search(new Events.EventQuery(fromTick, username));
+        return new SellerEventsDto(events.size(),fromTick.orElse(0),events);
     }
 
 }

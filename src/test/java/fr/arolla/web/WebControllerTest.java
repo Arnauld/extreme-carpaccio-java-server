@@ -5,6 +5,7 @@ import fr.arolla.core.Event;
 import fr.arolla.core.Player;
 import fr.arolla.core.Players;
 import fr.arolla.core.Ticker;
+import fr.arolla.core.event.Events;
 import fr.arolla.web.dto.PlayerRegistrationDto;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,12 +26,14 @@ public class WebControllerTest {
     private WebController webController;
     private Ticker ticker = new Ticker();
     private Event.Publisher eventPublisher;
+    private Events events;
 
     @Before
     public void setUp() {
         players = Mockito.mock(Players.class);
         eventPublisher = Mockito.mock(Event.Publisher.class);
-        webController = new WebController(players, ticker, eventPublisher);
+        events=Mockito.mock(Events.class);
+        webController = new WebController(players, ticker, eventPublisher,events);
     }
 
     @Test

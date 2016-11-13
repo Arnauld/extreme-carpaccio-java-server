@@ -5,6 +5,7 @@ import fr.arolla.core.Event;
 import fr.arolla.core.Player;
 import fr.arolla.core.Players;
 import fr.arolla.core.Ticker;
+import fr.arolla.core.event.Events;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,9 @@ public class WebControllerIntegTest {
 
     @MockBean
     private Ticker ticker;
+
+    @MockBean
+    private Events events;
 
     @MockBean
     private Event.Publisher eventPublisher;

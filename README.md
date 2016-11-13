@@ -72,26 +72,26 @@ Player registration -----> |                         |                          
 
 ### Question
 
-```
+```javascript
 {
   "question":"Which word in the list designate a programming language?",
   "choices":["jawa","jaba","java"]
 }
 ```
 
-```
+```javascript
 {
   "response":"java"
 }
 ```
 
-```
+```javascript
 {
   "question":"What is 4 plus 5?"
 }
 ```
 
-```
+```javascript
 {
   "response":"9"
 }

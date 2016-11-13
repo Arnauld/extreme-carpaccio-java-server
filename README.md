@@ -73,12 +73,27 @@ Player registration -----> |                         |                          
 ### Question
 
 ```
-{}
+{
+  "question":"Which word in the list designate a programming language?",
+  "choices":["jawa","jaba","java"]
+}
 ```
 
 ```
 {
-  "response":"erlang"
+  "response":"java"
+}
+```
+
+```
+{
+  "question":"What is 4 plus 5?"
+}
+```
+
+```
+{
+  "response":"9"
 }
 ```
 
@@ -97,6 +112,7 @@ Player registration -----> |                         |                          
 
 ```javascript
 {
-  "quote": 
+  "quote": 234.5,
+  "options":["SportsAndActivities","MedicalConditions"]
 }
 ```

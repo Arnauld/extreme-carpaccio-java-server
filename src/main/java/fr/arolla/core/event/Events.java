@@ -2,6 +2,7 @@ package fr.arolla.core.event;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -13,19 +14,19 @@ public interface Events {
      * Permet de recuperer tout les evenements
      * @return les événements
      */
-    List<IdentifiableEvent> all();
+    List<CarpaccioEvent> all();
 
     /**
      * cherche des evenements spécifiques
      * @return les evenements repondants aux criteres
      */
-    List<IdentifiableEvent> search(EventQuery query);
+    List<CarpaccioEvent> search(EventQuery query);
 
     /**
      * Persiste un evenement
      * @param event l'evenement à persister
      */
-    void save(IdentifiableEvent event);
+    void save(CarpaccioEvent event);
 
     /**
      * Requête pour filtrer les evenements.
@@ -45,12 +46,34 @@ public interface Events {
             this.username = Optional.ofNullable(username);
         }
 
-        public Predicate<IdentifiableEvent> getTickPredicate() {
-            return fromTick.map(startTick->(Predicate<IdentifiableEvent>)(e->e.getTick()>startTick)).orElse(t->true);
+        public Predicate<CarpaccioEvent> getTickPredicate() {
+            return fromTick
+                    .map(hasSameTick())
+                    .orElse(t -> true);
         }
 
-        public Predicate<IdentifiableEvent> getUsernamePredicate() {
-            return username.map(expectedUsername -> (Predicate<IdentifiableEvent>) (e -> e.getUsername().equals(expectedUsername))).orElse(t -> true);
+        private Function<Integer, Predicate<CarpaccioEvent>> hasSameTick() {
+            return startTick->(Predicate<CarpaccioEvent>)(e->e.getTick()>startTick);
+        }
+
+        public Predicate<CarpaccioEvent> getUsernamePredicate() {
+            return username
+                    .map(hasSameUsername())
+                    .orElse(t -> true);
+        }
+
+        private Function<String, Predicate<CarpaccioEvent>> hasSameUsername() {
+            return expectedUsername ->
+                    hasUsername()
+                    .and(hasSameUsername(expectedUsername));
+        }
+
+        private Predicate<CarpaccioEvent> hasSameUsername(String expectedUsername) {
+            return e -> ((HasUsername) e).getUsername().equals(expectedUsername);
+        }
+
+        private Predicate<CarpaccioEvent> hasUsername() {
+            return (Predicate<CarpaccioEvent>) (e -> e instanceof HasUsername);
         }
 
     }

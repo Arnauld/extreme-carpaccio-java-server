@@ -5,10 +5,9 @@ import fr.arolla.core.Event;
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
-public class IterationStartedEvent extends TypedEvent implements Event {
-    public final int tick;
+public class IterationStartedEvent extends CarpaccioEvent implements Event {
 
     public IterationStartedEvent(int tick) {
-        this.tick = tick;
+        super(tick);
     }
 }

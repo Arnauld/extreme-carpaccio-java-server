@@ -1,7 +1,7 @@
 package fr.arolla.web.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.arolla.core.event.IdentifiableEvent;
+import fr.arolla.core.event.CarpaccioEvent;
 
 import java.util.List;
 
@@ -15,10 +15,10 @@ public class SellerEventsDto  {
     @JsonProperty("fromTick")
     private Integer fromTick;
     @JsonProperty("events")
-    private List<IdentifiableEvent> events;
+    private List<CarpaccioEvent> events;
 
 
-    public SellerEventsDto(int nbEvents, int fromTick, List<IdentifiableEvent> events) {
+    public SellerEventsDto(int nbEvents, int fromTick, List<CarpaccioEvent> events) {
         this.nbEvents = nbEvents;
         this.fromTick = fromTick;
         this.events = events;

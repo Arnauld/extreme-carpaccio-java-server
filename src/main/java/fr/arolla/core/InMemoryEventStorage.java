@@ -1,7 +1,7 @@
 package fr.arolla.core;
 
+import fr.arolla.core.event.CarpaccioEvent;
 import fr.arolla.core.event.Events;
-import fr.arolla.core.event.IdentifiableEvent;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -18,15 +18,15 @@ import static java.util.stream.Collectors.toList;
 public class InMemoryEventStorage implements Events {
 
 
-    private List<IdentifiableEvent> events=new ArrayList<>(1000);
+    private List<CarpaccioEvent> events=new ArrayList<>(1000);
 
     @Override
-    public List<IdentifiableEvent> all() {
+    public List<CarpaccioEvent> all() {
         return Collections.unmodifiableList(events);
     }
 
     @Override
-    public List<IdentifiableEvent> search(EventQuery query) {
+    public List<CarpaccioEvent> search(EventQuery query) {
         return events.stream()
                 .parallel()
                 .filter(query.getTickPredicate())
@@ -35,7 +35,7 @@ public class InMemoryEventStorage implements Events {
     }
 
     @Override
-    public void save(IdentifiableEvent event) {
+    public void save(CarpaccioEvent event) {
         this.events.add(event);
     }
 }

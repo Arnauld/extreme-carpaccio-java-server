@@ -5,12 +5,18 @@ import fr.arolla.core.Event;
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
-public class PlayerUrlUpdatedEvent extends TypedEvent implements Event {
-    public final String username;
+public class PlayerUrlUpdatedEvent extends CarpaccioEvent implements Event,HasUsername {
     public final String url;
+    private final String username;
 
-    public PlayerUrlUpdatedEvent(String username, String url) {
-        this.username = username;
+    public PlayerUrlUpdatedEvent(String username,int tick, String url) {
+        super(tick);
+        this.username=username;
         this.url = url;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
     }
 }

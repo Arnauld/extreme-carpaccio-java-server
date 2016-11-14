@@ -19,13 +19,15 @@ public class RegistrationCommand {
     private final Logger log = LoggerFactory.getLogger(RegistrationCommand.class);
     private final Players players;
     private final Event.Publisher eventPublisher;
+    private final int tick;
     private String username;
     private String password;
     private String url;
 
-    public RegistrationCommand(Players players, Event.Publisher eventPublisher) {
+    public RegistrationCommand(Players players, Event.Publisher eventPublisher,int tick) {
         this.players = players;
         this.eventPublisher = eventPublisher;
+        this.tick=tick;
     }
 
     public RegistrationCommand withUsername(String username) {
@@ -50,7 +52,7 @@ public class RegistrationCommand {
     public void execute() {
         if (isBlank(username) || isBlank(password) || isBlank(url)) {
             log.warn("Invalid parameters '{}' / '{}': '{}'", username, hidePassword(password), url);
-            eventPublisher.publish(new InvalidRegistrationEvent(username, url));
+            eventPublisher.publish(new InvalidRegistrationEvent(username,tick, url));
             throw new InvalidParametersException();
         }
 
@@ -60,11 +62,11 @@ public class RegistrationCommand {
             checkCredentials(player, password);
             player.changeUrl(url);
             players.update(player);
-            eventPublisher.publish(new PlayerUrlUpdatedEvent(username, url));
+            eventPublisher.publish(new PlayerUrlUpdatedEvent(username,tick, url));
         } else {
             Player player = new Player(username, password, url);
             players.add(player);
-            eventPublisher.publish(new PlayerRegisteredEvent(username, url));
+            eventPublisher.publish(new PlayerRegisteredEvent(username,tick, url));
         }
     }
 

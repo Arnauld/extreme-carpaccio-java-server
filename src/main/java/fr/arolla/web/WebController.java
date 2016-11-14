@@ -4,8 +4,8 @@ import fr.arolla.command.RegistrationCommand;
 import fr.arolla.core.Event;
 import fr.arolla.core.Players;
 import fr.arolla.core.Ticker;
+import fr.arolla.core.event.CarpaccioEvent;
 import fr.arolla.core.event.Events;
-import fr.arolla.core.event.IdentifiableEvent;
 import fr.arolla.web.dto.CashHistoriesDto;
 import fr.arolla.web.dto.PlayerOfListAllDto;
 import fr.arolla.web.dto.PlayerRegistrationDto;
@@ -73,7 +73,7 @@ public class WebController {
     //
     @RequestMapping(value = "/seller", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     public void registerPlayer(@RequestBody PlayerRegistrationDto dto) {
-        new RegistrationCommand(players, eventPublisher)
+        new RegistrationCommand(players, eventPublisher,ticker.current())
                 .withUsername(dto.username)
                 .withPassword(dto.password)
                 .withUrl(dto.url)
@@ -83,7 +83,7 @@ public class WebController {
     @RequestMapping(value = "/events", method = RequestMethod.GET)
     public SellerEventsDto retrieveEvents(@RequestParam("fromTick") Optional<Integer> fromTick) {
         log.debug("events history queried ");
-        List<IdentifiableEvent> events = fromTick
+        List<CarpaccioEvent> events = fromTick
                 .map(t -> eventsHistory.search(new Events.EventQuery(t, null)))
                 .orElseGet(() -> eventsHistory.all());
         return new SellerEventsDto(events.size(),fromTick.orElse(0),events);
@@ -92,7 +92,7 @@ public class WebController {
     @RequestMapping(value = "/events/{username}", method = RequestMethod.GET)
     public SellerEventsDto retrieveEvents(@PathVariable("username") String username,@RequestParam("fromTick") Optional<Integer> fromTick) {
         log.debug("events history queried ");
-        List<IdentifiableEvent> events = eventsHistory.search(new Events.EventQuery(fromTick, username));
+        List<CarpaccioEvent> events = eventsHistory.search(new Events.EventQuery(fromTick, username));
         return new SellerEventsDto(events.size(),fromTick.orElse(0),events);
     }
 

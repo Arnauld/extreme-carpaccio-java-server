@@ -1,8 +1,8 @@
 package fr.arolla;
 
 import fr.arolla.core.Event;
+import fr.arolla.core.event.CarpaccioEvent;
 import fr.arolla.core.event.Events;
-import fr.arolla.core.event.IdentifiableEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -32,8 +32,8 @@ public class EventRecorder {
 
     private void storeEvent(Event event) {
         try {
-            if(event instanceof IdentifiableEvent){
-                events.save((IdentifiableEvent) event);
+            if(event instanceof CarpaccioEvent){
+                events.save((CarpaccioEvent) event);
             }
         } catch(Exception e){
             log.warn("Fail to save event {}", event, e);

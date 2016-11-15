@@ -11,7 +11,7 @@ import java.util.function.Predicate;
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
-public class QuestionMultipleChoice extends QuestionSupport<String> implements Question<String> {
+public class QuestionMultipleChoice extends QuestionSupport implements Question {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Data {

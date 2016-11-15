@@ -9,7 +9,7 @@ import java.util.function.DoubleUnaryOperator;
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
-public class QuestionPriceCalculation extends QuestionSupport<Double> implements Question<Double> {
+public class QuestionPriceCalculation extends QuestionSupport implements Question {
 
     private static final double EPS = 1e-3;
 
@@ -51,7 +51,7 @@ public class QuestionPriceCalculation extends QuestionSupport<Double> implements
     }
 
     @Override
-    public Object questionData() {
+    public Data questionData() {
         return data;
     }
 
@@ -64,8 +64,8 @@ public class QuestionPriceCalculation extends QuestionSupport<Double> implements
     }
 
     @Override
-    public Double expectedResponse() {
-        return new BigDecimal(getTotal()).setScale(2,BigDecimal.ROUND_HALF_EVEN).doubleValue();
+    public String expectedResponse() {
+        return new BigDecimal(getTotal()).setScale(2,BigDecimal.ROUND_HALF_EVEN).toPlainString();
     }
 
     private boolean isTotalCorrect(double actualTotal) {

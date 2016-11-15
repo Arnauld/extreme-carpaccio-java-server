@@ -203,7 +203,7 @@ public class Data {
     Cover cover;
 }
 
-public class QuestionInsurance extends QuestionSupport<Data> implements Question<Data> {
+public class QuestionInsurance extends QuestionSupport implements Question{
 
     final Data data;
 
@@ -212,7 +212,7 @@ public class QuestionInsurance extends QuestionSupport<Data> implements Question
     }
 
     @Override
-    Object questionData() {
+    Data questionData() {
         return data
     }
 
@@ -228,7 +228,7 @@ public class QuestionInsurance extends QuestionSupport<Data> implements Question
     }
 
     @Override
-    Data expectedResponse() {
-        return data;
+    String expectedResponse() {
+        return String.valueOf(quote(data));
     }
 }

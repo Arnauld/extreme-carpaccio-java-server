@@ -146,7 +146,7 @@ public class InvalidTravellersAgesData {
     String cover;
 }
 
-public class InvalidTQuestionInsurance implements Question {
+public class InvalidTQuestionInsurance implements Question<Object> {
 
     final Object data;
 
@@ -177,5 +177,10 @@ public class InvalidTQuestionInsurance implements Question {
     @Override
     double lossPenalty() {
         return 400
+    }
+
+    @Override
+    String expectedResponse() {
+        return "HTTP 400";
     }
 }

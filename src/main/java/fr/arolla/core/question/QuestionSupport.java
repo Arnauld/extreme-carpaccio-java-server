@@ -5,7 +5,7 @@ import fr.arolla.core.Question;
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
-public abstract class QuestionSupport<T> implements Question<T> {
+public abstract class QuestionSupport implements Question {
 
 
     public static final int GAIN_AMOUNT = 450;

@@ -3,7 +3,7 @@ package fr.arolla.core;
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
-public class QuestionString implements Question<String> {
+public class QuestionString implements Question {
     public static final double GAIN_AMOUNT = 450;
     public static final double GAIN_PENALTY = -250;
     private final String value;

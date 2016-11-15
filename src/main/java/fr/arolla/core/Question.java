@@ -6,7 +6,7 @@ import java.util.Optional;
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
-public interface Question<T> {
+public interface Question {
 
     interface Response {
         <T> Optional<T> get(String key, Class<T> type);
@@ -50,7 +50,7 @@ public interface Question<T> {
      */
     double lossPenalty();
 
-    T expectedResponse();
+    String expectedResponse();
 
 
 }

@@ -146,7 +146,7 @@ public class InvalidTravellersAgesData {
     String cover;
 }
 
-public class InvalidTQuestionInsurance implements Question<Object> {
+public class InvalidTQuestionInsurance implements Question {
 
     final Object data;
 

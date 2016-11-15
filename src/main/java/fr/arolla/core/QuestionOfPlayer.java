@@ -45,7 +45,7 @@ public class QuestionOfPlayer {
     }
 
     public boolean isResponseAccepted() {
-        return question.accepts(response);
+        return question.accepts(response).accepted();
     }
 
     public boolean isInvalidQuestion() {
@@ -69,7 +69,7 @@ public class QuestionOfPlayer {
     }
 
     public String getExpectedResponse() {
-        return question.expectedResponse().toString();
+        return question.accepts(response).diagnostic();
     }
 
     public String getPlayerResponse() {

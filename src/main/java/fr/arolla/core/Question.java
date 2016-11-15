@@ -2,6 +2,7 @@ package fr.arolla.core;
 
 import javax.validation.constraints.NotNull;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
@@ -16,6 +17,24 @@ public interface Question {
         boolean accepted();
 
         String diagnostic();
+
+        static ResponseValidation of(boolean accepted, Supplier<String> errorMessage) {
+            return new ResponseValidation() {
+                @Override
+                public boolean accepted() {
+                    return accepted;
+                }
+
+                @Override
+                public String diagnostic() {
+                    return errorMessage.get();
+                }
+            };
+        }
+
+        static ResponseValidation rejected(String errorMessage) {
+            return of(false, () -> errorMessage);
+        }
     }
 
     /**
@@ -26,7 +45,7 @@ public interface Question {
     /**
      * Validate the response of the question.
      */
-    boolean accepts(@NotNull Response response);
+    ResponseValidation accepts(@NotNull Response response);
 
     /**
      * Indicates whether or not the response of the question should be invalid.
@@ -49,8 +68,5 @@ public interface Question {
      * @see #accepts(Response)
      */
     double lossPenalty();
-
-    String expectedResponse();
-
 
 }

@@ -71,7 +71,7 @@ public class QuestionPriceCalculationTest {
                         reductionFn);
 
         double total = reductionFn.applyAsDouble(taxFn.applyAsDouble(1 * 1.0 + 2 * 2.0 + 3 * 3.0 + 4 * 4.0));
-        assertThat(q.accepts(r(total))).isTrue();
+        assertThat(q.accepts(r(total)).accepted()).isTrue();
     }
 
     @Test
@@ -89,7 +89,7 @@ public class QuestionPriceCalculationTest {
                         reductionFn);
 
         double total = 0.0d;
-        assertThat(q.accepts(r(total))).isTrue();
+        assertThat(q.accepts(r(total)).accepted()).isTrue();
     }
 
 

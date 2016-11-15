@@ -19,7 +19,7 @@ public class QuestionMultipleChoiceTest {
                 s -> Pattern.compile("[^0-9]+").matcher(s).matches());
 
         assertThat(q.isInvalid()).isFalse();
-        assertThat(q.accepts(r("Arnauld"))).isTrue();
+        assertThat(q.accepts(r("Arnauld")).accepted()).isTrue();
     }
 
     private static Question.Response r(Object content) {
@@ -37,10 +37,10 @@ public class QuestionMultipleChoiceTest {
                 s -> Pattern.compile("[^0-9]+").matcher(s).matches());
 
         assertThat(q.isInvalid()).isFalse();
-        assertThat(q.accepts(r("Arnauld"))).isTrue();
-        assertThat(q.accepts(r(null))).isFalse();
-        assertThat(q.accepts(r(12.4))).isFalse();
-        assertThat(q.accepts(r())).isFalse();
+        assertThat(q.accepts(r("Arnauld")).accepted()).isTrue();
+        assertThat(q.accepts(r(null)).accepted()).isFalse();
+        assertThat(q.accepts(r(12.4)).accepted()).isFalse();
+        assertThat(q.accepts(r()).accepted()).isFalse();
     }
 
     @Test
@@ -51,9 +51,9 @@ public class QuestionMultipleChoiceTest {
                 "ERLANG");
 
         assertThat(q.isInvalid()).isFalse();
-        assertThat(q.accepts(r("ErlAng"))).describedAs("accept response ignoring case").isTrue();
-        assertThat(q.accepts(r("c#"))).isFalse();
-        assertThat(q.accepts(r("cobol"))).isFalse();
+        assertThat(q.accepts(r("ErlAng")).accepted()).describedAs("accept response ignoring case").isTrue();
+        assertThat(q.accepts(r("c#")).accepted()).isFalse();
+        assertThat(q.accepts(r("cobol")).accepted()).isFalse();
     }
 
     @Test
@@ -67,11 +67,11 @@ public class QuestionMultipleChoiceTest {
 
         assertThat(q.isInvalid()).isFalse();
         for (String language : languages) {
-            assertThat(q.accepts(r(language.toUpperCase()))).isTrue();
+            assertThat(q.accepts(r(language.toUpperCase())).accepted()).isTrue();
         }
-        assertThat(q.accepts(r())).isFalse();
-        assertThat(q.accepts(r(16.8))).isFalse();
-        assertThat(q.accepts(r(null))).isFalse();
+        assertThat(q.accepts(r()).accepted()).isFalse();
+        assertThat(q.accepts(r(16.8)).accepted()).isFalse();
+        assertThat(q.accepts(r(null)).accepted()).isFalse();
     }
 
     @Test
@@ -82,10 +82,10 @@ public class QuestionMultipleChoiceTest {
                 "ERLANG");
 
         assertThat(q.isInvalid()).isFalse();
-        assertThat(q.accepts(r("ErlAng"))).describedAs("accept response ignoring case").isTrue();
-        assertThat(q.accepts(r("c#"))).isFalse();
-        assertThat(q.accepts(r("cobol"))).isFalse();
-        assertThat(q.accepts(r(null))).isFalse();
-        assertThat(q.accepts(r(16.8))).isFalse();
+        assertThat(q.accepts(r("ErlAng")).accepted()).describedAs("accept response ignoring case").isTrue();
+        assertThat(q.accepts(r("c#")).accepted()).isFalse();
+        assertThat(q.accepts(r("cobol")).accepted()).isFalse();
+        assertThat(q.accepts(r(null)).accepted()).isFalse();
+        assertThat(q.accepts(r(16.8)).accepted()).isFalse();
     }
 }

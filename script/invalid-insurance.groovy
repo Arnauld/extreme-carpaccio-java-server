@@ -160,8 +160,8 @@ public class InvalidTQuestionInsurance implements Question {
     }
 
     @Override
-    boolean accepts(@NotNull Question.Response response) {
-        return false
+    Question.ResponseValidation accepts(@NotNull Question.Response response) {
+        return Question.ResponseValidation.rejected("HTTP 400 expected")
     }
 
     @Override
@@ -177,10 +177,5 @@ public class InvalidTQuestionInsurance implements Question {
     @Override
     double lossPenalty() {
         return 400
-    }
-
-    @Override
-    String expectedResponse() {
-        return "HTTP 400";
     }
 }

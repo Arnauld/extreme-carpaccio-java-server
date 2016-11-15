@@ -73,11 +73,11 @@ public class GroovyScriptTest {
         List<QuestionMultipleChoice> qs = (List<QuestionMultipleChoice>) engine.get("questions");
 
         assertThat(qs).hasSize(4);
-        assertThat(qs.get(0).accepts(r("Belladona"))).isTrue();
-        assertThat(qs.get(1).accepts(r("java"))).isTrue();
-        assertThat(qs.get(1).accepts(r("c#"))).isFalse();
-        assertThat(qs.get(2).accepts(r("YEs"))).isTrue();
-        assertThat(qs.get(3).accepts(r("a binary associative operation, an identity element     "))).isTrue();
+        assertThat(qs.get(0).accepts(r("Belladona")).accepted()).isTrue();
+        assertThat(qs.get(1).accepts(r("java")).accepted()).isTrue();
+        assertThat(qs.get(1).accepts(r("c#")).accepted()).isFalse();
+        assertThat(qs.get(2).accepts(r("YEs")).accepted()).isTrue();
+        assertThat(qs.get(3).accepts(r("a binary associative operation, an identity element     ")).accepted()).isTrue();
     }
 
     @Test(expected = ScriptException.class)

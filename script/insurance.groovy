@@ -172,19 +172,18 @@ public class QuestionInsurance extends QuestionSupport implements Question {
     }
 
     @Override
-    boolean accepts(@NotNull Question.Response response) {
-        return response
-                .get("quote", Double.class)
-                .map({ double actual ->
-            double expected = quoteFn(data)
-            Math.abs(expected - actual) < 1e-3
-        })
-                .orElse(false)
-    }
+    Question.ResponseValidation accepts(@NotNull Question.Response response) {
+        Optional<Double> valueOpt = response.get("quote", Double.class);
+        if (valueOpt.isPresent())
+            return Question.ResponseValidation
+                    .of(valueOpt
+                    .map({ double actual ->
+                double expected = quoteFn(data)
+                Math.abs(expected - actual) < 1e-3
+            })
+                    .orElse(false), { -> String.format("Expected: %.2f but got: %.2f", quoteFn(data), valueOpt.get()) })
 
-    @Override
-    String expectedResponse() {
-        return quote(data) as String
+        return Question.ResponseValidation.rejected("Missing property 'quote' of type Double");
     }
 }
 

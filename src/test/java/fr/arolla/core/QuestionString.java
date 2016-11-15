@@ -1,5 +1,7 @@
 package fr.arolla.core;
 
+import java.util.Optional;
+
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
@@ -18,10 +20,13 @@ public class QuestionString implements Question {
     }
 
     @Override
-    public boolean accepts(Response response) {
-        return response.get("response", String.class)
-                .map(r -> r.equals(value))
-                .orElse(false);
+    public ResponseValidation accepts(Response response) {
+        Optional<String> valueOpt = response.get("response", String.class);
+        if (valueOpt.isPresent())
+            return ResponseValidation.of(valueOpt
+                    .map(r -> r.equals(value))
+                    .orElse(false), () -> "Expected: " + value + " but got: " + valueOpt.get());
+        return ResponseValidation.rejected("Missing property 'response' of type String");
     }
 
     @Override
@@ -39,8 +44,4 @@ public class QuestionString implements Question {
         return GAIN_PENALTY;
     }
 
-    @Override
-    public String expectedResponse() {
-        return value;
-    }
 }

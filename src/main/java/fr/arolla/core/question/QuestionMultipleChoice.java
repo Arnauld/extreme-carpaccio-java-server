@@ -6,6 +6,7 @@ import fr.arolla.core.Question;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
@@ -54,15 +55,12 @@ public class QuestionMultipleChoice extends QuestionSupport implements Question 
      * @param response nust not be null
      */
     @Override
-    public boolean accepts(@Nonnull Response response) {
-        return response
-                .get("response", String.class)
-                .map(validator::test)
-                .orElse(false);
-    }
-
-    @Override
-    public String expectedResponse() {
-        return "multiple choice answer";
+    public ResponseValidation accepts(@Nonnull Response response) {
+        Optional<String> valueOpt = response.get("response", String.class);
+        if (valueOpt.isPresent())
+            return ResponseValidation.of(valueOpt
+                    .map(validator::test)
+                    .orElse(false), () -> "multiple choice response");
+        return ResponseValidation.rejected("Missing property 'response' of type String");
     }
 }

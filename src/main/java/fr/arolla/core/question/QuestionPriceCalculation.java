@@ -3,7 +3,7 @@ package fr.arolla.core.question;
 import fr.arolla.core.Question;
 
 import javax.annotation.Nonnull;
-import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.function.DoubleUnaryOperator;
 
 /**
@@ -56,16 +56,13 @@ public class QuestionPriceCalculation extends QuestionSupport implements Questio
     }
 
     @Override
-    public boolean accepts(@Nonnull Response response) {
-        return response
-                .get("total", Double.class)
-                .map(this::isTotalCorrect)
-                .orElse(false);
-    }
-
-    @Override
-    public String expectedResponse() {
-        return new BigDecimal(getTotal()).setScale(2,BigDecimal.ROUND_HALF_EVEN).toPlainString();
+    public ResponseValidation accepts(@Nonnull Response response) {
+        Optional<Double> valueOpt = response.get("total", Double.class);
+        if (valueOpt.isPresent())
+            return ResponseValidation.of(valueOpt
+                    .map(this::isTotalCorrect)
+                    .orElse(false), () -> String.format("Expected: %1$.2f but got: %2$.2f", getTotal(), valueOpt.get()));
+        return ResponseValidation.rejected("Missing property 'total' of type Double");
     }
 
     private boolean isTotalCorrect(double actualTotal) {

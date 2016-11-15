@@ -178,4 +178,9 @@ public class InvalidTQuestionInsurance implements Question {
     double lossPenalty() {
         return 400
     }
+
+    @Override
+    Object expectedResponse() {
+        return null
+    }
 }

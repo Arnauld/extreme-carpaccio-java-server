@@ -44,4 +44,13 @@ public class QuestionString implements Question {
         return GAIN_PENALTY;
     }
 
+    @Override
+    public double lossErrorPenalty() {
+        return GAIN_PENALTY;
+    }
+
+    @Override
+    public double lossOfflinePenalty() {
+        return GAIN_PENALTY;
+    }
 }

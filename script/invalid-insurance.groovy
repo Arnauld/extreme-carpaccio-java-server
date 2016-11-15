@@ -176,6 +176,16 @@ public class InvalidTQuestionInsurance implements Question {
 
     @Override
     double lossPenalty() {
-        return 400
+        return -400
+    }
+
+    @Override
+    double lossErrorPenalty() {
+        return lossPenalty()
+    }
+
+    @Override
+    double lossOfflinePenalty() {
+        return lossPenalty()
     }
 }

@@ -62,11 +62,27 @@ public interface Question {
     double gainAmount();
 
     /**
-     * Amount lost if the answer is not accepted
+     * Amount lost if the answer is not accepted.
      * It is up to the question to determinate this amount, based on the question difficulty for example.
      *
      * @see #accepts(Response)
      */
     double lossPenalty();
+
+    /**
+     * Amount lost if an error occured while processing this question.
+     * It is up to the question to determinate this amount, based on the question difficulty for example.
+     *
+     * @see #accepts(Response)
+     */
+    double lossErrorPenalty();
+
+    /**
+     * Amount lost if the player has been considered offline during the processing of this question.
+     * It is up to the question to determinate this amount, based on the question difficulty for example.
+     *
+     * @see #accepts(Response)
+     */
+    double lossOfflinePenalty();
 
 }

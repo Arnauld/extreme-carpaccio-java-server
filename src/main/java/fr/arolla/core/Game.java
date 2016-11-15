@@ -22,8 +22,6 @@ public class Game {
     private final QuestionDispatcher dispatcher;
     private final FeedbackSender feedback;
     private final Randomizator randomizator;
-    private double offlinePenalty = -500.0d;
-    private double errorPenalty = -450.0d;
 
     @Autowired
     public Game(GameListener listener,
@@ -37,16 +35,6 @@ public class Game {
         this.dispatcher = dispatcher;
         this.feedback = feedback;
         this.randomizator = randomizator;
-    }
-
-    public Game withOfflinePenalty(double offlinePenalty) {
-        this.offlinePenalty = offlinePenalty;
-        return this;
-    }
-
-    public Game withErrorPenalty(double errorPenalty) {
-        this.errorPenalty = errorPenalty;
-        return this;
     }
 
     public void processIteration(int tick) {
@@ -101,20 +89,20 @@ public class Game {
             case Timeout:
             case NoResponseReceived:
                 online = false;
-                players.addCash(qop.username(), lossOfflinePenalty());
-                listener.playerLost(tick, qop.username(), lossOfflinePenalty(), "timeout");
-                fb = Feedback.error(qop, lossOfflinePenalty());
+                players.addCash(qop.username(), qop.lossOfflinePenalty());
+                listener.playerLost(tick, qop.username(), qop.lossOfflinePenalty(), "timeout");
+                fb = Feedback.error(qop, qop.lossOfflinePenalty());
                 break;
             case InvalidResponse:
-                players.addCash(qop.username(), lossOfflinePenalty());
-                listener.playerLost(tick, qop.username(), lossOfflinePenalty(), "timeout");
-                fb = Feedback.error(qop, lossOfflinePenalty());
+                players.addCash(qop.username(), qop.lossOfflinePenalty());
+                listener.playerLost(tick, qop.username(), qop.lossOfflinePenalty(), "timeout");
+                fb = Feedback.error(qop, qop.lossOfflinePenalty());
                 break;
             case Error:
                 online = false;
-                players.addCash(qop.username(), lossErrorPenalty());
-                listener.playerLost(tick, qop.username(), lossErrorPenalty(), "error");
-                fb = Feedback.error(qop, lossErrorPenalty());
+                players.addCash(qop.username(), qop.lossErrorPenalty());
+                listener.playerLost(tick, qop.username(), qop.lossErrorPenalty(), "error");
+                fb = Feedback.error(qop, qop.lossErrorPenalty());
                 break;
             case NotSent:
             default:
@@ -131,14 +119,6 @@ public class Game {
             return;
         players.markPlayerOnline(qop.username(), online);
         listener.playerOnline(tick, qop.username(), online);
-    }
-
-    private double lossErrorPenalty() {
-        return errorPenalty;
-    }
-
-    private double lossOfflinePenalty() {
-        return offlinePenalty;
     }
 
     private Observable<QuestionOfPlayer> dispatch(int tick, Question q, Player p) {

@@ -64,6 +64,14 @@ public class QuestionOfPlayer {
         return question.lossPenalty();
     }
 
+    public double lossErrorPenalty() {
+        return question.lossErrorPenalty();
+    }
+
+    public double lossOfflinePenalty() {
+        return question.lossOfflinePenalty();
+    }
+
     public Player getPlayer() {
         return player;
     }

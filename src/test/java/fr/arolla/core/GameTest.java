@@ -30,6 +30,19 @@ public class GameTest {
     private QuestionOfPlayer.Status[] qopStatus;
     private Question.Response[] responseValues;
     private Randomizator randomizator;
+    private FeedbackSender feedback;
+
+    private static <T> T[] array(T... xs) {
+        return xs;
+    }
+
+    private static Question.Response r(Object content) {
+        return new ResponseSupport("response", content);
+    }
+
+    private static Question.Response r() {
+        return new ResponseSupport(Collections.emptyMap());
+    }
 
     @Before
     public void setUp() {
@@ -41,8 +54,9 @@ public class GameTest {
         questionGenerator = mock(QuestionGenerator.class);
         dispatcher = mock(QuestionDispatcher.class);
         randomizator = new Randomizator();
+        feedback = mock(FeedbackSender.class);
 
-        game = new Game(listener, players, questionGenerator, dispatcher, randomizator);
+        game = new Game(listener, players, questionGenerator, dispatcher, feedback, randomizator);
     }
 
     @Test
@@ -77,7 +91,6 @@ public class GameTest {
         verify(dispatcher).dispatchQuestion(tick, question, p1);
         verify(dispatcher).dispatchQuestion(tick, question, p2);
     }
-
 
     @Test
     public void should_adjust_gain_based_on_response_validity() {
@@ -129,18 +142,5 @@ public class GameTest {
                         .withStatus(qopStatus[invocationCount])
                         .withResponse(responseValues[invocationCount]);
         return Observable.just(qop);
-    }
-
-    private static <T> T[] array(T... xs) {
-        return xs;
-    }
-
-
-    private static Question.Response r(Object content) {
-        return new ResponseSupport("response", content);
-    }
-
-    private static Question.Response r() {
-        return new ResponseSupport(Collections.emptyMap());
     }
 }

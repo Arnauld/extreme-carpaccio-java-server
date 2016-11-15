@@ -11,7 +11,7 @@ import java.util.function.Predicate;
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
-public class QuestionMultipleChoice extends QuestionSupport implements Question {
+public class QuestionMultipleChoice extends QuestionSupport<String> implements Question<String> {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Data {
@@ -59,5 +59,10 @@ public class QuestionMultipleChoice extends QuestionSupport implements Question 
                 .get("response", String.class)
                 .map(validator::test)
                 .orElse(false);
+    }
+
+    @Override
+    public String expectedResponse() {
+        return "multiple choice answer";
     }
 }

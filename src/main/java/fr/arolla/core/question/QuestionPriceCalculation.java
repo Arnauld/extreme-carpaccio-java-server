@@ -8,7 +8,7 @@ import java.util.function.DoubleUnaryOperator;
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
-public class QuestionPriceCalculation extends QuestionSupport implements Question {
+public class QuestionPriceCalculation extends QuestionSupport<Double> implements Question<Double> {
 
     private static final double EPS = 1e-3;
 
@@ -62,14 +62,24 @@ public class QuestionPriceCalculation extends QuestionSupport implements Questio
                 .orElse(false);
     }
 
+    @Override
+    public Double expectedResponse() {
+        return getTotal();
+    }
+
     private boolean isTotalCorrect(double actualTotal) {
+        double total = getTotal();
+        return Math.abs(actualTotal - total) < EPS;
+    }
+
+    private double getTotal() {
         double total = 0.0d;
         for (int i = 0, n = data.quantities.length; i < n; i++) {
             total += data.quantities[i] * data.prices[i];
         }
         total = taxFn.applyAsDouble(total);
         total = reductionFn.applyAsDouble(total);
-        return Math.abs(actualTotal - total) < EPS;
+        return total;
     }
 
 }

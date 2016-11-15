@@ -23,6 +23,13 @@ public class ResponseSupport implements Question.Response {
     }
 
     @Override
+    public String toString() {
+        return "ResponseSupport{" +
+                "values=" + values +
+                '}';
+    }
+
+    @Override
     public <T> Optional<T> get(String key, Class<T> type) {
         Object o = values.get(key);
         if (o != null && type.isInstance(o))

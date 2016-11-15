@@ -3,6 +3,7 @@ package fr.arolla.core.question;
 import fr.arolla.core.Question;
 
 import javax.annotation.Nonnull;
+import java.math.BigDecimal;
 import java.util.function.DoubleUnaryOperator;
 
 /**
@@ -64,7 +65,7 @@ public class QuestionPriceCalculation extends QuestionSupport<Double> implements
 
     @Override
     public Double expectedResponse() {
-        return getTotal();
+        return new BigDecimal(getTotal()).setScale(2,BigDecimal.ROUND_HALF_EVEN).doubleValue();
     }
 
     private boolean isTotalCorrect(double actualTotal) {

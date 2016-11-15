@@ -38,7 +38,7 @@ public class Feedback {
     public static Feedback error(QuestionOfPlayer qop, double amount) {
         String message = "Holy crap " + qop.username() +
                 ", an error happened :(" +
-                "-> You will be charged of " + amount;
+                "-> You will be charged of " + -amount;
         return new Feedback(qop.getPlayer(), message, Type.ERROR);
     }
 

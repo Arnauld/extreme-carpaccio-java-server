@@ -31,7 +31,7 @@ Player registration -----> |                         |                          
                            |                         | {Game.java} .........'
       Player 1 <---------  |                         |        :             `....> {QuestionGenerator.java}
       Player 2 <---------  |  RxNetty Clients        |        v
-       ...                 |    / Observable         | {RxNettyQuestionDispatcher.java}
+       ...                 |    / Observable         | {RxNettyDispatcher.java}
       Player n <---------  |                         |
                            +-------------------------+
 
@@ -39,15 +39,15 @@ Player registration -----> |                         |                          
 
 ## Notes
 
-* [x] Dashboard add code review ranking: Web Page; - Y.
+* [x] Dashboard add code review ranking: Web Page; - CANCELED
 * [ ] No random on ReductionMode; keep Standard on start, then eventually change it afterwards
-* [ ] Feedback invocation / Question#accept => Question#diagnose to send a relevant feedback message
+* [x] Feedback invocation / Question#accept => Question#diagnose to send a relevant feedback message - Y
 * [x] API Events - F.
 
 
 
 * [ ] Bad requests: Generation/Activation 
-* [ ] Configure logs: multiple log file: game/player/...
+* [x] Configure logs: multiple log file: game/player/...
 * [ ] Persist data
 * [ ] 
 

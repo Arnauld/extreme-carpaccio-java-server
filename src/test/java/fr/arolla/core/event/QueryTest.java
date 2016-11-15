@@ -1,6 +1,7 @@
 package fr.arolla.core.event;
 
 import fr.arolla.core.Event;
+import fr.arolla.core.Events;
 import org.junit.Test;
 
 import java.util.function.Predicate;

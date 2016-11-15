@@ -5,7 +5,7 @@ import fr.arolla.core.Event;
 import fr.arolla.core.Player;
 import fr.arolla.core.Players;
 import fr.arolla.core.Ticker;
-import fr.arolla.core.event.Events;
+import fr.arolla.core.Events;
 import fr.arolla.web.dto.PlayerRegistrationDto;
 import org.junit.Before;
 import org.junit.Test;

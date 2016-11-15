@@ -1,7 +1,7 @@
 package fr.arolla;
 
 import fr.arolla.core.Event;
-import fr.arolla.core.event.Events;
+import fr.arolla.core.Events;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

@@ -1,6 +1,7 @@
-package fr.arolla.core.event;
+package fr.arolla.core;
 
-import fr.arolla.core.Event;
+import fr.arolla.core.event.HasTick;
+import fr.arolla.core.event.HasUsername;
 
 import java.util.List;
 import java.util.Optional;
@@ -62,7 +63,7 @@ public interface Events {
         private Function<Integer, Predicate<Event>> hasGreaterTick() {
             return startTick->(
                     (Predicate<Event>)(e->e instanceof HasTick))
-                    .and(e->((HasTick)e).getTick()>=startTick);
+                    .and(e -> ((HasTick) e).getTick() >= startTick);
         }
 
         public Predicate<Event> getUsernamePredicate() {

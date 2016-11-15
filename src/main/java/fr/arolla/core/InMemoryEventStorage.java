@@ -1,7 +1,5 @@
 package fr.arolla.core;
 
-import fr.arolla.core.event.Events;
-import fr.arolla.core.event.HasTick;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

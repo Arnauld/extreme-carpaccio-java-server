@@ -4,7 +4,7 @@ import fr.arolla.command.RegistrationCommand;
 import fr.arolla.core.Event;
 import fr.arolla.core.Players;
 import fr.arolla.core.Ticker;
-import fr.arolla.core.event.Events;
+import fr.arolla.core.Events;
 import fr.arolla.web.dto.CashHistoriesDto;
 import fr.arolla.web.dto.PlayerOfListAllDto;
 import fr.arolla.web.dto.PlayerRegistrationDto;

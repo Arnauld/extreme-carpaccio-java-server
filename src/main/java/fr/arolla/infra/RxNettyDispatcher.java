@@ -76,15 +76,12 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
         Player player = feedback.getPlayer();
         log.info("Notifying answer to player {} at tick {}", player.username(), tick);
         log.debug("sending feedback {} to player {} at tick {}", feedback, player.username(), tick);
-        sendFeedback(player, tick, payload);
-    }
-
-    private void sendFeedback(Player player, int tick, ByteBuf payload) {
         RxNetty.createHttpPost(player.url(), Observable.just(payload))
                 .doOnError(
                         err -> log.error("Tick {} - error while sending feedback for {}", tick, player.username(), err)
                 )
-                .timeout(10L, TimeUnit.SECONDS);
+                .timeout(10L, TimeUnit.SECONDS)
+                .subscribe();
     }
 
     private QuestionOfPlayer consolidateResponse(QuestionOfPlayer qop, ResponseDto response) {

@@ -21,7 +21,7 @@ public class Feedback {
     public static Feedback winning(QuestionOfPlayer qop) {
         String message = "Congrats " + qop.username() +
                 ", your answer (" + qop.getPlayerResponse() + ") was right !" +
-                " You just earned " + qop.gainAmount() + ".";
+                "-> You just earned " + qop.gainAmount();
         return new Feedback(qop.getPlayer()
                 , message
                 , Type.WIN);
@@ -31,14 +31,14 @@ public class Feedback {
         String message = "OMG NUB " + qop.username() +
                 ", we expected [" + qop.getExpectedResponse() + "]" +
                 " but your answer was (" + qop.getPlayerResponse() + ")" +
-                " You will be charged of " + qop.gainPenalty() + ".";
+                "-> You will be charged of " + qop.gainPenalty();
         return new Feedback(qop.getPlayer(), message, Type.LOOSE);
     }
 
     public static Feedback error(QuestionOfPlayer qop, double amount) {
         String message = "Holy crap " + qop.username() +
                 ", an error happened :(" +
-                " You will be charged of " + amount + ".";
+                "-> You will be charged of " + amount;
         return new Feedback(qop.getPlayer(), message, Type.ERROR);
     }
 

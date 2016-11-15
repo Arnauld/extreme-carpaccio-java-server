@@ -5,12 +5,13 @@ import fr.arolla.core.Event;
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
-public class InvalidRegistrationEvent extends CarpaccioEvent implements Event,HasUsername {
-    public final String url;
-    private String username;
+public class InvalidRegistrationEvent extends TypedEvent implements Event,HasUsername,HasTick {
+    private final String url;
+    private final String username;
+    private final int tick;
 
     public InvalidRegistrationEvent(String username,int tick, String url) {
-        super(tick);
+        this.tick=tick;
         this.url = url;
         this.username=username;
     }
@@ -18,5 +19,14 @@ public class InvalidRegistrationEvent extends CarpaccioEvent implements Event,Ha
     @Override
     public String getUsername() {
         return username;
+    }
+
+    @Override
+    public int getTick() {
+        return tick;
+    }
+
+    public String getUrl() {
+        return url;
     }
 }

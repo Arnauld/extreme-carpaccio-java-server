@@ -4,7 +4,6 @@ import fr.arolla.command.RegistrationCommand;
 import fr.arolla.core.Event;
 import fr.arolla.core.Players;
 import fr.arolla.core.Ticker;
-import fr.arolla.core.event.CarpaccioEvent;
 import fr.arolla.core.event.Events;
 import fr.arolla.web.dto.CashHistoriesDto;
 import fr.arolla.web.dto.PlayerOfListAllDto;
@@ -83,16 +82,16 @@ public class WebController {
     @RequestMapping(value = "/events", method = RequestMethod.GET)
     public SellerEventsDto retrieveEvents(@RequestParam("fromTick") Optional<Integer> fromTick) {
         log.debug("events history queried ");
-        List<CarpaccioEvent> events = fromTick
-                .map(t -> eventsHistory.search(new Events.EventQuery(t, null)))
-                .orElseGet(() -> eventsHistory.all());
+        List<Event> events = fromTick
+                .map(t -> eventsHistory.search(new Events.Query(t)))
+                .orElseGet(eventsHistory::all);
         return new SellerEventsDto(events.size(),fromTick.orElse(0),events);
     }
 
     @RequestMapping(value = "/events/{username}", method = RequestMethod.GET)
     public SellerEventsDto retrieveEvents(@PathVariable("username") String username,@RequestParam("fromTick") Optional<Integer> fromTick) {
         log.debug("events history queried ");
-        List<CarpaccioEvent> events = eventsHistory.search(new Events.EventQuery(fromTick, username));
+        List<Event> events = eventsHistory.search(new Events.Query(fromTick, username));
         return new SellerEventsDto(events.size(),fromTick.orElse(0),events);
     }
 

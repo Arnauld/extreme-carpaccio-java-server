@@ -1,5 +1,7 @@
 package fr.arolla.core.event;
 
+import fr.arolla.core.Event;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -14,68 +16,64 @@ public interface Events {
      * Permet de recuperer tout les evenements
      * @return les événements
      */
-    List<CarpaccioEvent> all();
+    List<Event> all();
 
     /**
      * cherche des evenements spécifiques
      * @return les evenements repondants aux criteres
      */
-    List<CarpaccioEvent> search(EventQuery query);
+    List<Event> search(Query query);
 
     /**
      * Persiste un evenement
      * @param event l'evenement à persister
      */
-    void save(CarpaccioEvent event);
+    void save(Event event);
 
     /**
      * Requête pour filtrer les evenements.
      * Fournit des predicats
      */
-    class EventQuery {
+    class Query {
         private Optional<Integer> fromTick;
         private Optional<String> username;
 
-        public EventQuery(Integer fromTick, String username) {
+        public Query(Integer fromTick, String username) {
             this.fromTick = Optional.ofNullable(fromTick);
             this.username = Optional.ofNullable(username);
         }
 
-        public EventQuery(Optional<Integer> fromTick, String username) {
+        public Query(Integer fromTick) {
+            this.fromTick = Optional.ofNullable(fromTick);
+            this.username = Optional.empty();
+        }
+
+        public Query(Optional<Integer> fromTick, String username) {
             this.fromTick = fromTick;
             this.username = Optional.ofNullable(username);
         }
 
-        public Predicate<CarpaccioEvent> getTickPredicate() {
+        public Predicate<Event> getTickPredicate() {
             return fromTick
-                    .map(hasSameTick())
+                    .map(hasGreaterTick())
                     .orElse(t -> true);
         }
 
-        private Function<Integer, Predicate<CarpaccioEvent>> hasSameTick() {
-            return startTick->(Predicate<CarpaccioEvent>)(e->e.getTick()>startTick);
+        private Function<Integer, Predicate<Event>> hasGreaterTick() {
+            return startTick->(
+                    (Predicate<Event>)(e->e instanceof HasTick))
+                    .and(e->((HasTick)e).getTick()>=startTick);
         }
 
-        public Predicate<CarpaccioEvent> getUsernamePredicate() {
+        public Predicate<Event> getUsernamePredicate() {
             return username
-                    .map(hasSameUsername())
+                    .map(hasSameUserName())
                     .orElse(t -> true);
         }
 
-        private Function<String, Predicate<CarpaccioEvent>> hasSameUsername() {
-            return expectedUsername ->
-                    hasUsername()
-                    .and(hasSameUsername(expectedUsername));
+        private Function<String, Predicate<Event>> hasSameUserName() {
+            return userName->((Predicate<Event>)(e->e instanceof HasUsername)).and(e->((HasUsername)e).getUsername().equals(userName));
         }
-
-        private Predicate<CarpaccioEvent> hasSameUsername(String expectedUsername) {
-            return e -> ((HasUsername) e).getUsername().equals(expectedUsername);
-        }
-
-        private Predicate<CarpaccioEvent> hasUsername() {
-            return (Predicate<CarpaccioEvent>) (e -> e instanceof HasUsername);
-        }
-
     }
 
 }

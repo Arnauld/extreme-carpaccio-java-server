@@ -1,10 +1,17 @@
 package fr.arolla.core.event;
 
 
-public class TypedEvent {
-    public final String type;
+import fr.arolla.core.Event;
+
+public class TypedEvent implements Event {
+
+    private final String type;
 
     public TypedEvent() {
         this.type = getClass().getSimpleName();
+    }
+
+    public String getType() {
+        return type;
     }
 }

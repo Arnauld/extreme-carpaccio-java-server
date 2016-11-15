@@ -5,12 +5,14 @@ import fr.arolla.core.Event;
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
-public class PlayerOnlineStatusChangedEvent extends CarpaccioEvent implements Event,HasUsername {
-    public final boolean online;
+public class PlayerOnlineStatusChangedEvent extends TypedEvent implements Event,HasUsername,HasTick {
+    private final boolean online;
     private final String username;
+    private final int tick;
 
     public PlayerOnlineStatusChangedEvent(int tick, String username, boolean online) {
-        super(tick);
+        super();
+        this.tick=tick;
         this.username=username;
         this.online = online;
     }
@@ -18,5 +20,14 @@ public class PlayerOnlineStatusChangedEvent extends CarpaccioEvent implements Ev
     @Override
     public String getUsername() {
         return username;
+    }
+
+    @Override
+    public int getTick() {
+        return tick;
+    }
+
+    public boolean isOnline() {
+        return online;
     }
 }

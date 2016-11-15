@@ -1,9 +1,6 @@
 package fr.arolla.core.event;
 
-import java.io.Serializable;
-
-
-public interface HasUsername extends Serializable {
+public interface HasUsername {
 
     String getUsername();
 

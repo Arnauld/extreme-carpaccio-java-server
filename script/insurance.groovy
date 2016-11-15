@@ -13,8 +13,8 @@ import fr.arolla.core.question.QuestionSupport
 import fr.arolla.util.Randomizator
 
 import javax.validation.constraints.NotNull
-import java.time.Duration
 import java.time.LocalDate
+import java.time.Period
 
 // ----------------------------------------------------------------------------
 //
@@ -53,120 +53,148 @@ public enum Cover {
     Premier
 }
 
-def priceForAge(int age) {
-    return 66.0;
-}
+public class QuestionInsurance extends QuestionSupport implements Question {
 
-def applyCoverFactor(double total, Cover cover) {
-    switch (cover) {
-        case Cover.Basic:
-            return total
+    Data data
 
-        case Cover.Extra:
-            return total * 1.4
+    def priceForAge(int age) {
+        return 66.0;
+    }
 
-        case Cover.Premier:
-            return total * 1.8
+    def applyCoverFactor(double total, Cover cover) {
+        switch (cover) {
+            case Cover.Basic:
+                return total
+
+            case Cover.Extra:
+                return total * 1.4
+
+            case Cover.Premier:
+                return total * 1.8
+        }
+    }
+
+    def applyRiskFactor(double total, Country country) {
+        switch (country) {
+            case Country.UK:
+                return total * 1.2
+
+            case Country.DE:
+            case Country.FR:
+            case Country.IT:
+            case Country.ES:
+                return total * 1.0
+
+            case Country.PL:
+            case Country.RO:
+                return total * 1.2
+
+            case Country.NL:
+            case Country.BE:
+                return total * 1.1
+
+            case Country.EL:
+                return total * 0.9
+
+            case Country.CZ:
+                return total * 1.4
+
+            case Country.PT:
+                return total * 1.1
+
+            case Country.HU:
+                return total * 1.4
+
+            case Country.SE:
+            case Country.AT:
+            case Country.BG:
+            case Country.DK:
+            case Country.FI:
+            case Country.SK:
+            case Country.IE:
+                return total + 500
+
+            case Country.HR:
+            case Country.LT:
+            case Country.SI:
+            case Country.LV:
+            case Country.EE:
+            case Country.CY:
+            case Country.LU:
+                return total * 1.25
+
+            case Country.MT:
+            default:
+                return total * 1.1
+        }
+    }
+
+    def priceForOption(Option option, int age) {
+        switch (option) {
+            case Option.WinterSports:
+                if (age < 5)
+                    return 0;
+                return 40
+            case Option.SportsAndActivities:
+                if (age < 5)
+                    return 0
+                return 35
+            case Option.MedicalConditions:
+                if (age < 5)
+                    return 20
+                return 30
+        }
+    }
+
+    def addOptions(double total, int[] travellerAges, List<Option> options) {
+        options.inject(total, { t0, option ->
+            travellerAges.inject(t0, { t1, age -> t1 + priceForOption(option, age) })
+        }) as double
+    }
+
+    def quote(Data data) {
+        double totalForADay = data
+                .travellerAges
+                .collect({ d -> priceForAge(d) }) // collect == map
+                .inject(0, { total, price -> total + price }) // inject  == reduce/fold
+
+        int nbDays = Period.between(data.returnDate, data.departureDate).getDays()
+        double total = totalForADay * nbDays
+        total = applyRiskFactor(total, data.country)
+        total = addOptions(total, data.travellerAges, data.options)
+        total = applyCoverFactor(total, data.cover)
+        total
+    }
+
+    @Override
+    Data questionData() {
+        return data
+    }
+
+    @Override
+    boolean accepts(@NotNull Question.Response response) {
+        return response
+                .get("quote", Double.class)
+                .map({ double actual ->
+            double expected = quoteFn(data)
+            Math.abs(expected - actual) < 1e-3
+        })
+                .orElse(false)
+    }
+
+    @Override
+    String expectedResponse() {
+        return quote(data) as String
     }
 }
 
-def applyRiskFactor(double total, Country country) {
-    switch (country) {
-        case Country.UK:
-            return total * 1.2
-
-        case Country.DE:
-        case Country.FR:
-        case Country.IT:
-        case Country.ES:
-            return total * 1.0
-
-        case Country.PL:
-        case Country.RO:
-            return total * 1.2
-
-        case Country.NL:
-        case Country.BE:
-            return total * 1.1
-
-        case Country.EL:
-            return total * 0.9
-
-        case Country.CZ:
-            return total * 1.4
-
-        case Country.PT:
-            return total * 1.1
-
-        case Country.HU:
-            return total * 1.4
-
-        case Country.SE:
-        case Country.AT:
-        case Country.BG:
-        case Country.DK:
-        case Country.FI:
-        case Country.SK:
-        case Country.IE:
-            return total + 500
-
-        case Country.HR:
-        case Country.LT:
-        case Country.SI:
-        case Country.LV:
-        case Country.EE:
-        case Country.CY:
-        case Country.LU:
-            return total * 1.25
-
-        case Country.MT:
-        default:
-            return total * 1.1
-    }
-}
-
-def priceForOption(Option option, int age) {
-    switch (option) {
-        case Option.WinterSports:
-            if (age < 5)
-                return 0;
-            return 40
-        case Option.SportsAndActivities:
-            if (age < 5)
-                return 0
-            return 35
-        case Option.MedicalConditions:
-            if (age < 5)
-                return 20
-            return 30
-    }
-}
-
-def addOptions(double total, int[] travellerAges, List<Option> options) {
-    options.inject(total, { t0, option ->
-        travellerAges.inject(t0, { t1, age -> t1 + priceForOption(option, age) })
-    }) as double
-}
-
-def quote(Data data) {
-    double totalForADay = data
-            .travellerAges
-            .collect({ d -> priceForAge(d) }) // collect == map
-            .inject(0, { total, price -> total + price }) // inject  == reduce/fold
-
-    int nbDays = Duration.between(data.returnDate, data.departureDate).toDays()
-    double total = totalForADay * nbDays
-    total = applyRiskFactor(total, data.country)
-    total = addOptions(total, data.travellerAges, data.options)
-    total = applyCoverFactor(total, data.cover)
-    total
-}
 
 public class QuestionInsuranceGenerator implements QuestionGenerator {
+
     @Override
     Question nextQuestion(int tick, Randomizator randomizator) {
         Data data = generateDatas(randomizator)
-        return new QuestionInsurance(data)
+        return new QuestionInsurance(data: data)
     }
 
     protected Data generateDatas(Randomizator randomizator) {
@@ -189,7 +217,6 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
     }
 }
 
-
 generator = new QuestionInsuranceGenerator()
 
 public class Data {
@@ -203,32 +230,3 @@ public class Data {
     Cover cover;
 }
 
-public class QuestionInsurance extends QuestionSupport implements Question{
-
-    final Data data;
-
-    public QuestionInsurance(Data data) {
-        this.data = data
-    }
-
-    @Override
-    Data questionData() {
-        return data
-    }
-
-    @Override
-    boolean accepts(@NotNull Question.Response response) {
-        return response
-                .get("quote", Double.class)
-                .map({ double actual ->
-            double expected = quote(data)
-            Math.abs(expected - actual) < 1e-3
-        })
-                .orElse(false)
-    }
-
-    @Override
-    String expectedResponse() {
-        return "TODO : quote(data)";
-    }
-}

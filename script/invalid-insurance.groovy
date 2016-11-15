@@ -65,7 +65,7 @@ public class InvalidQuestionInsuranceGenerator implements QuestionGenerator {
         Country country = randomizator.pickOne(Country.values(), { c -> c.populationInMillions() })
         LocalDate dpDate = LocalDate.now().plusDays(randomizator.randomInt(10))
         LocalDate reDate = dpDate.plusDays(randomizator.randomInt(45))
-        int nbTraveller = randomizator.randomInt(5)
+        int nbTraveller = randomizator.randomInt(5)+3
         int[] ages = randomizator.randomPositiveInts(nbTraveller, 95)
         List<Option> options = Option.values().findAll { o -> randomizator.randomDouble() < 0.2 }.toList()
         Cover cover = randomizator.pickOne(Cover.values())

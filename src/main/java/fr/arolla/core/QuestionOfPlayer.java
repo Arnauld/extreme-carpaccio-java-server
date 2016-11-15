@@ -64,5 +64,15 @@ public class QuestionOfPlayer {
         return question.lossPenalty();
     }
 
+    public Player getPlayer() {
+        return player;
+    }
 
+    public String getExpectedResponse() {
+        return question.expectedResponse().toString();
+    }
+
+    public String getPlayerResponse() {
+        return response.toString();
+    }
 }

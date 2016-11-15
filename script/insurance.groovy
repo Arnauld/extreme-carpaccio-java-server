@@ -197,7 +197,7 @@ public class Data {
     Cover cover;
 }
 
-public class QuestionInsurance extends QuestionSupport implements Question {
+public class QuestionInsurance extends QuestionSupport<Data> implements Question<Data> {
 
     final Data data;
 
@@ -219,5 +219,10 @@ public class QuestionInsurance extends QuestionSupport implements Question {
             Math.abs(expected - actual) < 1e-3
         })
                 .orElse(false)
+    }
+
+    @Override
+    Data expectedResponse() {
+        return data;
     }
 }

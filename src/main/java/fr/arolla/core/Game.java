@@ -6,9 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rx.Observable;
-import rx.Subscriber;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -22,6 +20,7 @@ public class Game {
     private final Players players;
     private final QuestionGenerator questionGenerator;
     private final QuestionDispatcher dispatcher;
+    private final FeedbackSender feedback;
     private final Randomizator randomizator;
     private double offlinePenalty = -500.0d;
     private double errorPenalty = -450.0d;
@@ -31,11 +30,12 @@ public class Game {
                 Players players,
                 QuestionGenerator questionGenerator,
                 QuestionDispatcher dispatcher,
-                Randomizator randomizator) {
+                FeedbackSender feedback, Randomizator randomizator) {
         this.listener = listener;
         this.players = players;
         this.questionGenerator = questionGenerator;
         this.dispatcher = dispatcher;
+        this.feedback = feedback;
         this.randomizator = randomizator;
     }
 
@@ -51,54 +51,50 @@ public class Game {
 
     public void processIteration(int tick) {
         listener.iterationStarting(tick);
-
         Question q = questionGenerator.nextQuestion(tick, randomizator);
-        List<Observable<QuestionOfPlayer>> dispatched =
-                players.all()
-                        .map(p -> dispatch(tick, q, p))
-                        .collect(Collectors.toList());
-        Observable.merge(dispatched)
-                .subscribe(collectResponse(tick));
+
+        Observable.from(players.all().collect(Collectors.toList()))
+                .flatMap(p -> dispatch(tick, q, p))
+                .map(qop -> evaluateAnswer(qop, tick))
+                .map(fb -> sendFeedback(fb, tick))
+                .subscribe(
+                        next -> log.info("qop received and feedbacked for tick {}.", next, tick),
+                        error -> log.error("Ooops (during tick {})", tick, error),
+                        () -> log.info("Everything is fine for tick {}.", tick)
+                );
     }
 
-    private Subscriber<? super QuestionOfPlayer> collectResponse(int tick) {
-        return new Subscriber<QuestionOfPlayer>() {
-            @Override
-            public void onCompleted() {
-                log.info("All responses received for tick {}.", tick);
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                log.error("Ooops (during tick {})", tick, throwable);
-            }
-
-            @Override
-            public void onNext(QuestionOfPlayer questionOfPlayer) {
-                evaluateAnswer(questionOfPlayer, tick);
-            }
-        };
+    private Feedback sendFeedback(Feedback fb, int tick) {
+        if (fb.hasFeedback()) {
+            feedback.notify(fb, tick);
+        }
+        return fb;
     }
 
-    private void evaluateAnswer(QuestionOfPlayer qop, int tick) {
+    private Feedback evaluateAnswer(QuestionOfPlayer qop, int tick) {
         boolean online = true;
+        Feedback fb = Feedback.NO_FEEDBACK;
         switch (qop.status()) {
             case OK:
                 if (qop.isResponseAccepted()) {
                     players.addCash(qop.username(), qop.gainAmount());
                     listener.playerWon(tick, qop.username(), qop.gainAmount());
+                    fb = Feedback.winning(qop);
                 } else {
                     players.addCash(qop.username(), qop.gainPenalty());
                     listener.playerLost(tick, qop.username(), qop.gainPenalty(), "response-invalid");
+                    fb = Feedback.losing(qop);
                 }
                 break;
             case QuestionRejected:
                 if (qop.isInvalidQuestion()) {
                     players.addCash(qop.username(), qop.gainAmount());
                     listener.playerWon(tick, qop.username(), qop.gainAmount());
+                    fb = Feedback.winning(qop);
                 } else {
                     players.addCash(qop.username(), qop.gainPenalty());
                     listener.playerLost(tick, qop.username(), qop.gainPenalty(), "response-invalid");
+                    fb = Feedback.losing(qop);
                 }
                 break;
             case UnreachablePlayer:
@@ -107,15 +103,18 @@ public class Game {
                 online = false;
                 players.addCash(qop.username(), lossOfflinePenalty());
                 listener.playerLost(tick, qop.username(), lossOfflinePenalty(), "timeout");
+                fb = Feedback.error(qop, lossOfflinePenalty());
                 break;
             case InvalidResponse:
                 players.addCash(qop.username(), lossOfflinePenalty());
                 listener.playerLost(tick, qop.username(), lossOfflinePenalty(), "timeout");
+                fb = Feedback.error(qop, lossOfflinePenalty());
                 break;
             case Error:
                 online = false;
                 players.addCash(qop.username(), lossErrorPenalty());
                 listener.playerLost(tick, qop.username(), lossErrorPenalty(), "error");
+                fb = Feedback.error(qop, lossErrorPenalty());
                 break;
             case NotSent:
             default:
@@ -124,6 +123,7 @@ public class Game {
         }
 
         markPlayerOnline(tick, qop, online);
+        return fb;
     }
 
     private void markPlayerOnline(int tick, QuestionOfPlayer qop, boolean online) {

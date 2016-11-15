@@ -3,10 +3,7 @@ package fr.arolla.infra;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.arolla.core.Player;
-import fr.arolla.core.Question;
-import fr.arolla.core.QuestionDispatcher;
-import fr.arolla.core.QuestionOfPlayer;
+import fr.arolla.core.*;
 import fr.arolla.core.question.ResponseSupport;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -26,14 +23,14 @@ import java.util.concurrent.TimeUnit;
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
 @Service
-public class RxNettyQuestionDispatcher implements QuestionDispatcher {
+public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
 
-    private final Logger log = LoggerFactory.getLogger(RxNettyQuestionDispatcher.class);
+    private final Logger log = LoggerFactory.getLogger(RxNettyDispatcher.class);
 
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public RxNettyQuestionDispatcher(ObjectMapper objectMapper) {
+    public RxNettyDispatcher(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
@@ -73,6 +70,23 @@ public class RxNettyQuestionDispatcher implements QuestionDispatcher {
                 .map(response -> consolidateResponse(qop, response));
     }
 
+    @Override
+    public void notify(Feedback feedback, int tick) {
+        ByteBuf payload = toBytes(feedback);
+        Player player = feedback.getPlayer();
+        log.info("Notifying answer to player {} at tick {}", player.username(), tick);
+        log.debug("sending feedback {} to player {} at tick {}", feedback, player.username(), tick);
+        sendFeedback(player, tick, payload);
+    }
+
+    private void sendFeedback(Player player, int tick, ByteBuf payload) {
+        RxNetty.createHttpPost(player.url(), Observable.just(payload))
+                .doOnError(
+                        err -> log.error("Tick {} - error while sending feedback for {}", tick, player.username(), err)
+                )
+                .timeout(10L, TimeUnit.SECONDS);
+    }
+
     private QuestionOfPlayer consolidateResponse(QuestionOfPlayer qop, ResponseDto response) {
         log.info("Consolidating response with {}", response);
         return qop.withStatus(response.status).withResponse(new ResponseSupport(response.response));
@@ -101,6 +115,18 @@ public class RxNettyQuestionDispatcher implements QuestionDispatcher {
             return buffer;
         } catch (JsonProcessingException e) {
             log.error("Fail to serialize order {}", question, e);
+            throw new RuntimeException("Fail to serialize order", e);
+        }
+    }
+
+    private ByteBuf toBytes(Feedback feedback) {
+        try {
+            byte[] bytes = objectMapper.writeValueAsBytes(feedback.data());
+            ByteBuf buffer = ByteBufAllocator.DEFAULT.buffer(bytes.length);
+            buffer.writeBytes(bytes);
+            return buffer;
+        } catch (JsonProcessingException e) {
+            log.error("Fail to serialize order {}", feedback, e);
             throw new RuntimeException("Fail to serialize order", e);
         }
     }

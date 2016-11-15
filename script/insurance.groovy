@@ -229,6 +229,6 @@ public class QuestionInsurance extends QuestionSupport implements Question{
 
     @Override
     String expectedResponse() {
-        return String.valueOf(quote(data));
+        return "TODO : quote(data)";
     }
 }

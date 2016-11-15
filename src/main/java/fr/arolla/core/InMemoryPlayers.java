@@ -23,10 +23,7 @@ public class InMemoryPlayers implements Players {
 
     @PostConstruct
     public void removeMe() {
-        add(new Player("batman", "pwd", "http://localhost:4566"));
-        add(new Player("ruby", "pwd", "http://localhost:4567"));
-        add(new Player("jhondoe", "pwd", "http://localhost:4568"));
-        add(new Player("ruppert", "pwd", "http://localhost:4569"));
+        add(new Player("batman", "pwd", "http://localhost:8999"));
     }
 
     @Override

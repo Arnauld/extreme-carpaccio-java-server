@@ -111,8 +111,8 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
             buffer.writeBytes(bytes);
             return buffer;
         } catch (JsonProcessingException e) {
-            log.error("Fail to serialize order {}", question, e);
-            throw new RuntimeException("Fail to serialize order", e);
+            log.error("Fail to serialize question {}", question, e);
+            throw new RuntimeException("Fail to serialize question", e);
         }
     }
 
@@ -123,8 +123,8 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
             buffer.writeBytes(bytes);
             return buffer;
         } catch (JsonProcessingException e) {
-            log.error("Fail to serialize order {}", feedback, e);
-            throw new RuntimeException("Fail to serialize order", e);
+            log.error("Fail to serialize feedback {}", feedback, e);
+            throw new RuntimeException("Fail to serialize feedback", e);
         }
     }
 

@@ -165,10 +165,15 @@ def quote(Data data) {
 public class QuestionInsuranceGenerator implements QuestionGenerator {
     @Override
     Question nextQuestion(int tick, Randomizator randomizator) {
+        Data data = generateDatas(randomizator)
+        return new QuestionInsurance(data)
+    }
+
+    protected Data generateDatas(Randomizator randomizator) {
         Country country = randomizator.pickOne(Country.values(), { c -> c.populationInMillions() })
         LocalDate dpDate = LocalDate.now().plusDays(randomizator.randomInt(10))
         LocalDate reDate = dpDate.plusDays(randomizator.randomInt(45))
-        int nbTraveller = randomizator.randomInt(5)
+        int nbTraveller = randomizator.randomInt(5)+1
         int[] ages = randomizator.randomPositiveInts(nbTraveller, 95)
         List<Option> options = Option.values().findAll { o -> randomizator.randomDouble() < 0.2 }.toList()
         Cover cover = randomizator.pickOne(Cover.values())
@@ -180,9 +185,10 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
                 travellerAges: ages,
                 options: options,
                 cover: cover)
-        return new QuestionInsurance(data)
+        data
     }
 }
+
 
 generator = new QuestionInsuranceGenerator()
 

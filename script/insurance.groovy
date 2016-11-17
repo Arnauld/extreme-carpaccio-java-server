@@ -42,9 +42,15 @@ weight = 0.9 as double
 
 // Sorry, winter sports cover is not available for trips that are longer than 31 days.
 public enum Option {
-    WinterSports,
-    SportsAndActivities,
-    MedicalConditions
+    WinterSports(0.5),
+    SportsAndActivities(0.0),
+    MedicalConditions(0.0)
+
+    public double rate;
+
+    private Option(double rate){
+        this.rate=rate;
+    }
 }
 
 public enum Cover {
@@ -202,7 +208,8 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
         LocalDate reDate = dpDate.plusDays(randomizator.randomInt(45))
         int nbTraveller = randomizator.randomInt(5)
         int[] ages = randomizator.randomPositiveInts(nbTraveller, 95)
-        List<Option> options = Option.values().findAll { o -> randomizator.randomDouble() < 0.2 }.toList()
+        List<Option> options = Option.values().findAll { o -> randomizator.randomDouble() < o.rate }.toList()
+
         Cover cover = randomizator.pickOne(Cover.values())
 
         Data data = new Data(

@@ -31,6 +31,9 @@ public class ResponseSupport implements Question.Response {
 
     @Override
     public <T> Optional<T> get(String key, Class<T> type) {
+        if(values==null){
+            return Optional.empty();
+        }
         Object o = values.get(key);
         if (o != null && type.isInstance(o))
             return Optional.of(type.cast(o));

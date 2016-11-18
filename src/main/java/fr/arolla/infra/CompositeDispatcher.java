@@ -2,7 +2,6 @@ package fr.arolla.infra;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.arolla.core.*;
-import fr.arolla.core.question.invalid.EOFQuestion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +24,8 @@ public class CompositeDispatcher implements QuestionDispatcher, FeedbackSender {
 
     @Override
     public Observable<QuestionOfPlayer> dispatchQuestion(int tick, Question question, Player player) {
-            if(question instanceof EOFQuestion){
-                dosDispatcher.dispatchQuestion(tick, question, player);
+            if(question.isCorrupted()){
+               return dosDispatcher.dispatchQuestion(tick, question, player);
             }
             return defaultDispatcher.dispatchQuestion(tick, question, player);
     }

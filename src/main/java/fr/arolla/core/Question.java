@@ -9,6 +9,8 @@ import java.util.function.Supplier;
  */
 public interface Question {
 
+    boolean isCorrupted();
+
     interface Response {
         <T> Optional<T> get(String key, Class<T> type);
     }

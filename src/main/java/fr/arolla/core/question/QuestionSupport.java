@@ -38,4 +38,9 @@ public abstract class QuestionSupport implements Question {
     public double lossErrorPenalty() {
         return LOSS_PENALTY_ERROR;
     }
+
+    @Override
+    public boolean isCorrupted(){
+        return false;
+    }
 }

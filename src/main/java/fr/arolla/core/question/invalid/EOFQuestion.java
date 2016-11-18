@@ -10,4 +10,8 @@ public class EOFQuestion extends InvalidQuestionSupport{
     public Object questionData() {
         return "{nom:toto;prenom:boby;nom:toto;prenom:boby;nom:toto;prenom:boby;nom:toto;prenom:boby;nom:toto;prenom:boby;nom:toto;prenom:boby;nom:toto;prenom:boby}";
     }
+    @Override
+    public boolean isCorrupted(){
+        return true;
+    }
 }

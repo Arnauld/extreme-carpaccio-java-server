@@ -1,4 +1,4 @@
-package fr.arolla.core.question;
+package fr.arolla.core.question.invalid;
 
 import java.util.Random;
 

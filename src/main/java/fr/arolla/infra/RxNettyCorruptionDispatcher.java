@@ -9,63 +9,107 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.netty.RxNetty;
+import io.reactivex.netty.protocol.http.client.HttpClientResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
+import rx.functions.Action1;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-/**
- * @author <a href="http://twitter.com/aloyer">@aloyer</a>
- */
-public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
+public class RxNettyCorruptionDispatcher implements QuestionDispatcher, FeedbackSender {
 
-    private final Logger log = LoggerFactory.getLogger(RxNettyDispatcher.class);
+    public static final Random RANDOM = new Random();
+    private final Logger log = LoggerFactory.getLogger(RxNettyCorruptionDispatcher.class);
 
     private final ObjectMapper objectMapper;
+    private Random random = new Random();
 
     @Autowired
-    public RxNettyDispatcher(ObjectMapper objectMapper) {
+    public RxNettyCorruptionDispatcher(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
     @Override
     public Observable<QuestionOfPlayer> dispatchQuestion(int tick, Question question, Player player) {
-        ByteBuf payload = toBytes(question);
+
+
+        ByteBuf payload = getRandomBytes(question);
 
         log.info("Tick {} - Invoking {} on {}", tick, player.username(), player.url());
         QuestionOfPlayer qop = new QuestionOfPlayer(question, player);
+        final Integer[] i = {0};
+        Observable<HttpClientResponse<ByteBuf>> httpPost = RxNetty.createHttpPost(player.url(), Observable.just(payload)).skip(50);
 
-        return RxNetty.createHttpPost(player.url(), Observable.just(payload))
-                .flatMap(clientResponse -> {
-                    HttpResponseStatus status = clientResponse.getStatus();
-                    log.info("Tick {} - response received from {}: {}", tick, player.username(), status);
+        return httpPost.flatMap(clientResponse -> {
+            HttpResponseStatus status = clientResponse.getStatus();
+            log.info("Tick {} - response received from {}: {}", tick, player.username(), status);
 
-                    if (status.equals(HttpResponseStatus.OK)) {
-                        return clientResponse
-                                .getContent()
-                                .map(this::fromBytes)
-                                .map(r -> r.withStatus(QuestionOfPlayer.Status.OK))
-                                .onErrorReturn(err -> {
-                                    log.error("Tick {} - Ooops for {}", tick, player.username(), err);
-                                    return ResponseDto.error(err);
-                                });
-                    }
-                    if (status.equals(HttpResponseStatus.BAD_REQUEST)) {
-                        return Observable.just(ResponseDto.rejected());
-                    }
-                    return Observable.just(ResponseDto.invalid());
+            if (status.equals(HttpResponseStatus.OK)) {
+                return clientResponse
+                        .getContent()
+                        .map(this::fromBytes)
+                        .map(r -> r.withStatus(QuestionOfPlayer.Status.OK))
+                        .onErrorReturn(err -> {
+                            log.error("Tick {} - Ooops for {}", tick, player.username(), err);
+                            return ResponseDto.error(err);
+                        });
+            }
+            if (status.equals(HttpResponseStatus.BAD_REQUEST)) {
+                return Observable.just(ResponseDto.rejected());
+            }
+            return Observable.just(ResponseDto.invalid());
 
-                })
+        })
                 .onErrorReturn(err -> {
                     log.error("Tick {} - Ooops for {}", tick, player.username(), err);
                     return ResponseDto.error(err);
                 })
                 .timeout(10L, TimeUnit.SECONDS, Observable.just(ResponseDto.timeout()))
                 .map(response -> consolidateResponse(qop, response));
+    }
+
+    private Action1<? super HttpClientResponse<ByteBuf>> closeStream() {
+        return new Action1<HttpClientResponse<ByteBuf>>() {
+            @Override
+            public void call(HttpClientResponse<ByteBuf> byteBufHttpClientResponse) {
+
+            }
+        };
+    }
+
+    private Observable.Transformer<HttpClientResponse<ByteBuf>, HttpClientResponse<ByteBuf>> closeStreamRandomly() {
+        return t -> {
+            log.warn("soon close randomly");
+            t.count().forEach(x -> log.warn("Count=" + x));
+            if (RANDOM.nextBoolean() == RANDOM.nextBoolean()) {
+                //throw new IllegalArgumentException("we close the stream for evil plan");
+            }
+            return null;
+        };
+    }
+
+    private ByteBuf getRandomBytes(Question question) {
+
+
+
+        CustomByteBuf payload = new CustomByteBuf();
+        byte[] randomBytes;
+        try {
+            randomBytes = objectMapper.writeValueAsBytes(question.questionData());
+            payload.writeBytes(randomBytes);
+            return payload;
+        } catch (Exception e) {
+            randomBytes = new byte[10_000];
+            random.nextBytes(randomBytes);
+            payload.writeBytes(randomBytes);
+            return payload;
+        }
+
     }
 
     @Override
@@ -99,18 +143,6 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
         } catch (IOException e) {
             log.error("Ooops while reading OrderResponseDto", e);
             return ResponseDto.error(e);
-        }
-    }
-
-    private ByteBuf toBytes(Question question) {
-        try {
-            byte[] bytes = objectMapper.writeValueAsBytes(question.questionData());
-            ByteBuf buffer = ByteBufAllocator.DEFAULT.buffer(bytes.length);
-            buffer.writeBytes(bytes);
-            return buffer;
-        } catch (JsonProcessingException e) {
-            log.error("Fail to serialize question {}", question, e);
-            throw new RuntimeException("Fail to serialize question", e);
         }
     }
 

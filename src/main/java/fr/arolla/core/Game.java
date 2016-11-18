@@ -4,6 +4,7 @@ import fr.arolla.util.Randomizator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import rx.Observable;
 
@@ -28,7 +29,7 @@ public class Game {
                 Players players,
                 QuestionGenerator questionGenerator,
                 QuestionDispatcher dispatcher,
-                FeedbackSender feedback, Randomizator randomizator) {
+                @Qualifier("CompositeDispatcher") FeedbackSender feedback, Randomizator randomizator) {
         this.listener = listener;
         this.players = players;
         this.questionGenerator = questionGenerator;

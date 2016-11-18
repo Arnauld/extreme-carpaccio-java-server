@@ -1,5 +1,7 @@
-package fr.arolla.core.question;
+package fr.arolla.core.question.invalid;
 
+
+import fr.arolla.core.question.QuestionSupport;
 
 import javax.validation.constraints.NotNull;
 

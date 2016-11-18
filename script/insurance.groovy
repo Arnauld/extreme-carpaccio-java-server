@@ -32,7 +32,7 @@ version = "1.0.0"
 //
 // ----------------------------------------------------------------------------
 
-weight = 0.9 as double
+weight = 0.2 as double
 
 // ----------------------------------------------------------------------------
 //
@@ -62,7 +62,6 @@ public enum Cover {
     private Cover(double rate){
         this.rate=rate;
     }
-
 }
 
 public class QuestionInsurance extends QuestionSupport implements Question {

@@ -24,9 +24,7 @@ public class ResponseSupport implements Question.Response {
 
     @Override
     public String toString() {
-        return "ResponseSupport{" +
-                "values=" + values +
-                '}';
+        return values.toString();
     }
 
     @Override

@@ -24,7 +24,7 @@ public class ResponseSupport implements Question.Response {
 
     @Override
     public String toString() {
-        return values.toString();
+        return Optional.ofNullable(values).map(Object::toString).orElse("");
     }
 
     @Override

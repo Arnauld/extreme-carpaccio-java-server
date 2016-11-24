@@ -7,9 +7,9 @@
 //
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
-
 import fr.arolla.core.Question
 import fr.arolla.core.QuestionGenerator
+import fr.arolla.core.model.TravelDate
 import fr.arolla.core.question.Country
 import fr.arolla.core.question.QuestionSupport
 import fr.arolla.util.Randomizator
@@ -17,10 +17,6 @@ import groovy.transform.ToString
 
 import javax.validation.constraints.NotNull
 import java.time.LocalDate
-import java.time.Period
-import java.util.List
-import java.util.Map
-
 // ----------------------------------------------------------------------------
 //
 // VERSION
@@ -272,6 +268,7 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 		double totalForADay = travellerAges
 				.collect({ age -> ageRisk(age, ageRisks) }) // collect == map
 				.inject(0, { sum, price -> sum + price }) as double // inject  == reduce/fold
+		return totalForADay
 	}
 	
 	def testSumOfRiskAdjustedAges(){
@@ -308,7 +305,7 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 		double price = coverPrice(data.cover, config["coverPrices"])
 		double sumOfAges = sumOfRiskAdjustedAges(data.travellerAges, config["ageRisks"])
 		double countryRisk = countryRisk(data.country, config["countriesRisks"])
-		int nbDays = Period.between(data.departureDate, data.returnDate).getDays()
+		long nbDays = new TravelDate(data.departureDate).nbDaysBefore(new TravelDate(data.returnDate))
 		double optionPrice  = optionPrice(data.options, config["optionsPrices"])
 		double total = price * sumOfAges * nbDays + optionPrice
 		total

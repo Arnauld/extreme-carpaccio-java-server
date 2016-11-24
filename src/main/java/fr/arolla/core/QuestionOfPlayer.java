@@ -81,6 +81,6 @@ public class QuestionOfPlayer {
     }
 
     public String getPlayerResponse() {
-        return response.toString();
+        return (response!=null)?response.toString():"";
     }
 }

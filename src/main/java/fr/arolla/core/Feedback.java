@@ -28,7 +28,7 @@ public class Feedback {
     }
 
     public static Feedback losing(QuestionOfPlayer qop) {
-        String message = "OMG NUB " + qop.username() +
+        String message = "OMG " + qop.username() +
                 ", we expected [" + qop.getExpectedResponse() + "]" +
                 " but your answer was (" + qop.getPlayerResponse() + ")" +
                 "-> You will be charged of " + qop.gainPenalty();

@@ -18,6 +18,7 @@ import groovy.transform.ToString
 import javax.validation.constraints.NotNull
 import java.time.LocalDate
 import java.time.Period
+import java.time.temporal.ChronoUnit
 import java.util.List
 import java.util.Map
 
@@ -103,10 +104,25 @@ public class QuestionInsurance extends QuestionSupport implements Question {
 		return Question.ResponseValidation.rejected("Missing property 'quote' of type Double = "+data.quote);
 	}
 
-	@Override
-	double lossOfflinePenalty() {
-		return 0d
-	}
+    @Override
+    double lossErrorPenalty() {
+        return -0d
+    }
+
+    @Override
+    double lossOfflinePenalty() {
+        return -20d
+    }
+
+    @Override
+    double lossPenalty() {
+        return 0d
+    }
+
+    @Override
+    double gainAmount() {
+        return 100d
+    }
 }
 
 
@@ -272,6 +288,7 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 		double totalForADay = travellerAges
 				.collect({ age -> ageRisk(age, ageRisks) }) // collect == map
 				.inject(0, { sum, price -> sum + price }) as double // inject  == reduce/fold
+        return totalForADay
 	}
 	
 	def testSumOfRiskAdjustedAges(){
@@ -308,9 +325,9 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 		double price = coverPrice(data.cover, config["coverPrices"])
 		double sumOfAges = sumOfRiskAdjustedAges(data.travellerAges, config["ageRisks"])
 		double countryRisk = countryRisk(data.country, config["countriesRisks"])
-		int nbDays = Period.between(data.departureDate, data.returnDate).getDays()
+		int nbDays = ChronoUnit.DAYS.between(data.departureDate, data.returnDate)
 		double optionPrice  = optionPrice(data.options, config["optionsPrices"])
-		double total = price * sumOfAges * nbDays + optionPrice
+		double total = price * countryRisk * sumOfAges * nbDays + optionPrice
 		total
 	}
 	

@@ -7,8 +7,10 @@ import fr.arolla.core.*;
 import fr.arolla.core.question.ResponseSupport;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.netty.RxNetty;
+import io.reactivex.netty.protocol.http.client.HttpClientRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,8 +42,11 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
 
         log.info("Tick {} - Invoking {} on {}", tick, player.username(), player.url());
         QuestionOfPlayer qop = new QuestionOfPlayer(question, player);
-
-        return RxNetty.createHttpPost(player.url(), Observable.just(payload))
+        return RxNetty.createHttpRequest(
+                HttpClientRequest.createPost(player.url())
+                        .withContentSource(Observable.just(payload))
+                        .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(),"application/json")
+                        .withHeader(HttpHeaderNames.ACCEPT.toString(),"application/json"))
                 .flatMap(clientResponse -> {
                     HttpResponseStatus status = clientResponse.getStatus();
                     log.info("Tick {} - response received from {}: {}", tick, player.username(), status);
@@ -76,7 +81,12 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
         Player player = feedback.getPlayer();
         log.info("Notifying answer to player {} at tick {}", player.username(), tick);
         log.debug("sending feedback {} to player {} at tick {}", feedback, player.username(), tick);
-        RxNetty.createHttpPost(player.url(), Observable.just(payload))
+        RxNetty.createHttpRequest(
+                HttpClientRequest.createPost(player.url()+"/feedback")
+                        .withContentSource(Observable.just(payload))
+                        .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(),"application/json")
+                        .withHeader(HttpHeaderNames.ACCEPT.toString(),"application/json"))
+
                 .doOnError(
                         err -> log.error("Tick {} - error while sending feedback for {}", tick, player.username(), err)
                 )

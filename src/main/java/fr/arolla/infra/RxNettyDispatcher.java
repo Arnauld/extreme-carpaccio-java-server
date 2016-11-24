@@ -11,11 +11,13 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.netty.RxNetty;
 import io.reactivex.netty.protocol.http.client.HttpClientRequest;
+import io.reactivex.netty.protocol.http.client.HttpClientResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rx.Observable;
+import rx.functions.Func1;
 
 import java.io.IOException;
 import java.util.Map;
@@ -26,6 +28,9 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
+
+    public static final String QUOTE_PATH = "/quote";
+    public static final String FEEDBACK_PATH = "/feedback";
 
     private final Logger log = LoggerFactory.getLogger(RxNettyDispatcher.class);
 
@@ -42,37 +47,48 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
 
         log.info("Tick {} - Invoking {} on {}", tick, player.username(), player.url());
         QuestionOfPlayer qop = new QuestionOfPlayer(question, player);
+
         return RxNetty.createHttpRequest(
-                HttpClientRequest.createPost(player.url())
+                HttpClientRequest.createPost(player.url()+ QUOTE_PATH)
                         .withContentSource(Observable.just(payload))
                         .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(),"application/json")
                         .withHeader(HttpHeaderNames.ACCEPT.toString(),"application/json"))
-                .flatMap(clientResponse -> {
-                    HttpResponseStatus status = clientResponse.getStatus();
-                    log.info("Tick {} - response received from {}: {}", tick, player.username(), status);
 
-                    if (status.equals(HttpResponseStatus.OK)) {
-                        return clientResponse
-                                .getContent()
-                                .map(this::fromBytes)
-                                .map(r -> r.withStatus(QuestionOfPlayer.Status.OK))
-                                .onErrorReturn(err -> {
-                                    log.error("Tick {} - Ooops for {}", tick, player.username(), err);
-                                    return ResponseDto.error(err);
-                                });
-                    }
-                    if (status.equals(HttpResponseStatus.BAD_REQUEST)) {
-                        return Observable.just(ResponseDto.rejected());
-                    }
-                    return Observable.just(ResponseDto.invalid());
-
-                })
-                .onErrorReturn(err -> {
-                    log.error("Tick {} - Ooops for {}", tick, player.username(), err);
-                    return ResponseDto.error(err);
-                })
+                .flatMap(extractResponse(tick, player))
+                .onErrorReturn(toError(tick, player))
                 .timeout(10L, TimeUnit.SECONDS, Observable.just(ResponseDto.timeout()))
                 .map(response -> consolidateResponse(qop, response));
+    }
+
+    private Func1<HttpClientResponse<ByteBuf>, Observable<? extends ResponseDto>> extractResponse(int tick, Player player) {
+        return clientResponse -> {
+            HttpResponseStatus status = clientResponse.getStatus();
+            log.info("Tick {} - response received from {}: {}", tick, player.username(), status);
+
+            if (status.equals(HttpResponseStatus.OK)) {
+                return toResponseObservable(tick, player, clientResponse);
+            }
+            if (status.equals(HttpResponseStatus.BAD_REQUEST)) {
+                return Observable.just(ResponseDto.rejected());
+            }
+            return Observable.just(ResponseDto.invalid());
+
+        };
+    }
+
+    private Observable<ResponseDto> toResponseObservable(int tick, Player player, HttpClientResponse<ByteBuf> clientResponse) {
+        return clientResponse
+                .getContent()
+                .map(this::responseFromBytes)
+                .map(r -> r.withStatus(QuestionOfPlayer.Status.OK))
+                .onErrorReturn(toError(tick, player));
+    }
+
+    private Func1<Throwable, ResponseDto> toError(int tick, Player player) {
+        return err -> {
+            log.error("Tick {} - Ooops for {}", tick, player.username(), err);
+            return ResponseDto.error(err);
+        };
     }
 
     @Override
@@ -82,7 +98,7 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
         log.info("Notifying answer to player {} at tick {}", player.username(), tick);
         log.debug("sending feedback {} to player {} at tick {}", feedback, player.username(), tick);
         RxNetty.createHttpRequest(
-                HttpClientRequest.createPost(player.url()+"/feedback")
+                HttpClientRequest.createPost(player.url()+ FEEDBACK_PATH)
                         .withContentSource(Observable.just(payload))
                         .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(),"application/json")
                         .withHeader(HttpHeaderNames.ACCEPT.toString(),"application/json"))
@@ -99,7 +115,7 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
         return qop.withStatus(response.status).withResponse(new ResponseSupport(response.response));
     }
 
-    private ResponseDto fromBytes(ByteBuf byteBuf) {
+    private ResponseDto responseFromBytes(ByteBuf byteBuf) {
         try {
             int len = byteBuf.readableBytes();
             byte[] bytes = new byte[len];
@@ -108,7 +124,7 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
             });
             log.debug("Data read from bytes: {}", value);
             return new ResponseDto().withResponse(value);
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Ooops while reading OrderResponseDto", e);
             return ResponseDto.error(e);
         }

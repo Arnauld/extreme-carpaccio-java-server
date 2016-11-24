@@ -20,4 +20,6 @@ public interface Players {
     void addCash(String username, double amount);
 
     void markPlayerOnline(String username, boolean online);
+
+    void remove(Player player);
 }

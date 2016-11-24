@@ -82,7 +82,6 @@ public class WebControllerIntegTest {
         Map<String, Object> values = new HashMap<>();
         values.put("name", "carmen");
         values.put("password", "travis");
-        values.put("url", "http://localhost:8080");
 
         for (String key : values.keySet()) {
 

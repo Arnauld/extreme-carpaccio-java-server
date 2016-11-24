@@ -7,7 +7,7 @@ var SellerForm = React.createClass({
 		var password = this.refs.password.getDOMNode().value.trim();
 		var url = this.refs.url.getDOMNode().value.trim();
 
-		if(!name || !url) {
+		if(!name) {
 			return;
 		}
 

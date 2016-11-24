@@ -23,7 +23,7 @@ public class InMemoryPlayers implements Players {
 
     @PostConstruct
     public void removeMe() {
-        add(new Player("batman", "pwd", "http://localhost:8999"));
+        add(new Player("batman", "pwd", "http://localhost:4567"));
     }
 
     @Override
@@ -73,6 +73,11 @@ public class InMemoryPlayers implements Players {
     @Override
     public void markPlayerOnline(String username, boolean online) {
         players.get(keyOf(username)).setOnline(online);
+    }
+
+    @Override
+    public void remove(Player player) {
+        players.remove(player.username().toLowerCase());
     }
 
     private static String keyOf(String name) {

@@ -47,6 +47,13 @@ public class Randomizator {
     }
 
     /**
+     * @see Random#nextBytes(byte[])
+     */
+    public void randomBytes(byte[] bytes) {
+        random.nextBytes(bytes);
+    }
+
+    /**
      * @see Random#nextDouble()
      */
     public double[] randomPositiveDoubles(int nb, double bound) {

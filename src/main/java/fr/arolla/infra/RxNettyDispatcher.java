@@ -3,30 +3,33 @@ package fr.arolla.infra;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.arolla.core.*;
+import fr.arolla.core.Feedback;
+import fr.arolla.core.FeedbackSender;
+import fr.arolla.core.Player;
+import fr.arolla.core.Question;
+import fr.arolla.core.QuestionDispatcher;
+import fr.arolla.core.QuestionOfPlayer;
 import fr.arolla.core.question.ResponseSupport;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.reactivex.netty.RxNetty;
-import io.reactivex.netty.protocol.http.client.HttpClientRequest;
+import io.reactivex.netty.protocol.http.client.HttpClient;
 import io.reactivex.netty.protocol.http.client.HttpClientResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import rx.Observable;
 import rx.functions.Func1;
 
-import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
-@Service
 public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
 
     public static final String QUOTE_PATH = "/quote";
@@ -36,7 +39,6 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
 
     private final ObjectMapper objectMapper;
 
-    @Autowired
     public RxNettyDispatcher(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
@@ -48,12 +50,20 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
         log.info("Tick {} - Invoking {} on {}", tick, player.username(), player.url());
         QuestionOfPlayer qop = new QuestionOfPlayer(question, player);
 
-        return RxNetty.createHttpRequest(
-                HttpClientRequest.createPost(player.url()+ QUOTE_PATH)
-                        .withContentSource(Observable.just(payload))
-                        .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(),"application/json")
-                        .withHeader(HttpHeaderNames.ACCEPT.toString(),"application/json"))
+        URI uri;
+        try {
+            uri = new URI(player.url());
+        } catch (URISyntaxException e) {
+            log.warn("Fail to send question to player {}; url is invalid", player.username(), e);
+            return Observable.just(qop.withStatus(QuestionOfPlayer.Status.Error));
+        }
 
+        return HttpClient.newClient(uri.getHost(), uri.getPort())
+                .followRedirects(3)
+                .createPost(uri.getPath() + QUOTE_PATH)
+                .addHeader(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON)
+                .addHeader(HttpHeaderNames.ACCEPT, HttpHeaderValues.APPLICATION_JSON)
+                .writeContentAndFlushOnEach(Observable.just(payload))
                 .flatMap(extractResponse(tick, player))
                 .onErrorReturn(toError(tick, player))
                 .timeout(10L, TimeUnit.SECONDS, Observable.just(ResponseDto.timeout()))
@@ -92,17 +102,26 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
     }
 
     @Override
-    public void notify(Feedback feedback, int tick) {
+    public void notify(int tick, Feedback feedback) {
         ByteBuf payload = toBytes(feedback);
         Player player = feedback.getPlayer();
         log.info("Notifying answer to player {} at tick {}", player.username(), tick);
         log.debug("sending feedback {} to player {} at tick {}", feedback, player.username(), tick);
-        RxNetty.createHttpRequest(
-                HttpClientRequest.createPost(player.url()+ FEEDBACK_PATH)
-                        .withContentSource(Observable.just(payload))
-                        .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(),"application/json")
-                        .withHeader(HttpHeaderNames.ACCEPT.toString(),"application/json"))
 
+        URI uri;
+        try {
+            uri = new URI(player.url());
+        } catch (URISyntaxException e) {
+            log.warn("Fail to notify player {}; url is invalid", player.username(), e);
+            return;
+        }
+
+        HttpClient.newClient(uri.getHost(), uri.getPort())
+                .followRedirects(3)
+                .createPost(uri.getPath() + FEEDBACK_PATH)
+                .addHeader(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON)
+                .addHeader(HttpHeaderNames.ACCEPT, HttpHeaderValues.APPLICATION_JSON)
+                .writeContentAndFlushOnEach(Observable.just(payload))
                 .doOnError(
                         err -> log.error("Tick {} - error while sending feedback for {}", tick, player.username(), err)
                 )
@@ -111,7 +130,7 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
     }
 
     private QuestionOfPlayer consolidateResponse(QuestionOfPlayer qop, ResponseDto response) {
-        log.info("Consolidating response with {}", response);
+        log.info("Consolidating player {} response with {}", qop.getPlayer().username(), response);
         return qop.withStatus(response.status).withResponse(new ResponseSupport(response.response));
     }
 

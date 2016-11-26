@@ -171,12 +171,12 @@ public class InvalidTQuestionInsurance implements Question {
 
     @Override
     double gainAmount() {
-        return 400
+        return 100
     }
 
     @Override
     double lossPenalty() {
-        return -400
+        return -200
     }
 
     @Override

@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
 import fr.arolla.core.Question
 import fr.arolla.core.QuestionGenerator
-import fr.arolla.core.model.TravelDate
+import fr.arolla.core.model.LocalDates
 import fr.arolla.core.question.Country
 import fr.arolla.core.question.QuestionSupport
 import fr.arolla.util.Randomizator
@@ -320,7 +320,7 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 		double price = coverPrice(data.cover, config["coverPrices"])
 		double sumOfAges = sumOfRiskAdjustedAges(data.travellerAges, config["ageRisks"])
 		double countryRisk = countryRisk(data.country, config["countriesRisks"])
-		long nbDays = new TravelDate(data.departureDate).nbDaysBefore(new TravelDate(data.returnDate))
+		long nbDays = LocalDates.nbDaysBefore(data.departureDate,data.returnDate)
 		double optionPrice  = optionPrice(data.options, config["optionsPrices"])
 		double total = price * countryRisk * sumOfAges * nbDays + optionPrice
 		total

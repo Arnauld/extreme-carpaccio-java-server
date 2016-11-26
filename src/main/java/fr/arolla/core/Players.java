@@ -24,4 +24,6 @@ public interface Players {
     void remove(Player player);
 
     void resetScore(String username);
+
+    void saveState();
 }

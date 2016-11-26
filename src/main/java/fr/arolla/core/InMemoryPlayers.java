@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
-@Repository
+//@Repository
 public class InMemoryPlayers implements Players {
 
     private Map<String, Player> players = new ConcurrentHashMap<>();
@@ -100,5 +100,18 @@ public class InMemoryPlayers implements Players {
         playerToReset.cash(0);
         players.remove(playerToReset);
         this.add(playerToReset);
+    }
+
+    @Override
+    public void saveState() {
+
+    }
+
+    public Map<String, List<Double>> getCashHistories() {
+        return cashHistories;
+    }
+
+    public Map<String, Player> getPlayers() {
+        return players;
     }
 }

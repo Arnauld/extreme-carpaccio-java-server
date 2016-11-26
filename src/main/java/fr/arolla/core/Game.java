@@ -48,7 +48,10 @@ public class Game {
                 .subscribe(
                         next -> log.info("qop received and feedbacked for tick {}.", next, tick),
                         error -> log.error("Ooops (during tick {})", tick, error),
-                        () -> log.info("Everything is fine for tick {}.", tick)
+                        () -> {
+                            log.info("Everything is fine for tick {}.", tick);
+                            players.saveState();
+                        }
                 );
     }
 

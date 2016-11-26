@@ -8,7 +8,7 @@
         </encoder>
     </appender>
 
-    <logger name="fr.arolla.infra" level="OFF"/>
+    <logger name="fr.arolla.infra.RxNettyDispatcher" level="OFF"/>
     <logger name="fr.arolla" level="DEBUG"/>
 
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">

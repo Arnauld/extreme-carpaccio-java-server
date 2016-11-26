@@ -101,17 +101,17 @@ public class QuestionInsurance extends QuestionSupport implements Question {
 
     @Override
     double lossErrorPenalty() {
-        return -0d
+        return -50d
     }
 
     @Override
     double lossOfflinePenalty() {
-        return -0d
+        return -50d
     }
 
     @Override
     double lossPenalty() {
-        return -0d
+        return -50d
     }
 
     @Override

@@ -4,12 +4,9 @@ import fr.arolla.util.Sampler;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -20,6 +17,14 @@ public class InMemoryPlayers implements Players {
 
     private Map<String, Player> players = new ConcurrentHashMap<>();
     private Map<String, List<Double>> cashHistories = new ConcurrentHashMap<>();
+
+    private static String keyOf(String name) {
+        return name.toLowerCase();
+    }
+
+    private static String keyOf(Player player) {
+        return player.username().toLowerCase();
+    }
 
     @PostConstruct
     public void removeMe() {
@@ -43,11 +48,20 @@ public class InMemoryPlayers implements Players {
 
     @Override
     public void add(Player player) {
-        ArrayList<Double> cash = new ArrayList<>();
-        cash.add(0.0d);
+        update(player);
+        resetCashHistory(player);
+    }
 
-        players.put(keyOf(player), player);
-        cashHistories.put(keyOf(player), cash);
+    private List<Double> resetCashHistory(Player player) {
+
+        Integer size = cashHistories.values().stream()
+                .max((o1, o2) -> Integer.compare(o1.size(), o2.size()))
+                .map(List::size)
+                .orElse(1);
+        ArrayList<Double> cash = new ArrayList<>(size);
+        IntStream.range(0, size).forEach((x) -> cash.add(0d));
+
+        return cashHistories.put(keyOf(player), cash);
     }
 
     @Override
@@ -80,11 +94,11 @@ public class InMemoryPlayers implements Players {
         players.remove(player.username().toLowerCase());
     }
 
-    private static String keyOf(String name) {
-        return name.toLowerCase();
-    }
-
-    private static String keyOf(Player player) {
-        return player.username().toLowerCase();
+    @Override
+    public void resetScore(String username) {
+        Player playerToReset = players.get(username);
+        playerToReset.cash(0);
+        players.remove(playerToReset);
+        this.add(playerToReset);
     }
 }

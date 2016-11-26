@@ -35,6 +35,14 @@ public class QuestionGeneratorScriptBased implements QuestionGenerator, HasWeigh
         this.fileWatchr = new FileWatchr(scriptFile);
     }
 
+    @SuppressWarnings("unchecked")
+    private static <T> T getOrDefault(ScriptEngine engine, String key, T defaultValue) {
+        Object v = engine.get(key);
+        if (v == null)
+            return defaultValue;
+        return (T) v;
+    }
+
     @Override
     public double weight(int tick) {
         reloadConfigurationIfRequired(tick);
@@ -57,7 +65,14 @@ public class QuestionGeneratorScriptBased implements QuestionGenerator, HasWeigh
 
         if (generator == null || fileWatchr.hasChanged()) {
 
-            LOG.info("Reloading configuration from {}", scriptFile.getAbsolutePath());
+            LOG.info("\n" +
+                    "******************\n" +
+                    "******************\n" +
+                    "******************\n" +
+                    "******************\n" +
+                    "******************\n" +
+                    "******************\n" +
+                    "Reloading configuration from {}", scriptFile.getAbsolutePath());
 
             ScriptEngineManager manager = new ScriptEngineManager();
             ScriptEngine engine = manager.getEngineByName("groovy");
@@ -76,14 +91,6 @@ public class QuestionGeneratorScriptBased implements QuestionGenerator, HasWeigh
                 throw new RuntimeException("Invalid script type '" + scriptFile.getAbsolutePath() + "'", e);
             }
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T> T getOrDefault(ScriptEngine engine, String key, T defaultValue) {
-        Object v = engine.get(key);
-        if (v == null)
-            return defaultValue;
-        return (T) v;
     }
 
 }

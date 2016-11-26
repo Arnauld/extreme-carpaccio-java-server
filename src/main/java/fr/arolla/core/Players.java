@@ -22,4 +22,6 @@ public interface Players {
     void markPlayerOnline(String username, boolean online);
 
     void remove(Player player);
+
+    void resetScore(String username);
 }

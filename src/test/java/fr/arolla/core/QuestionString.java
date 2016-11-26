@@ -14,6 +14,7 @@ public class QuestionString implements Question {
         this.value = value;
     }
 
+
     @Override
     public Object questionData() {
         return value;
@@ -52,5 +53,10 @@ public class QuestionString implements Question {
     @Override
     public double lossOfflinePenalty() {
         return GAIN_PENALTY;
+    }
+
+    @Override
+    public boolean isCorrupted() {
+        return false;
     }
 }

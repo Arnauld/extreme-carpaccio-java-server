@@ -7,8 +7,10 @@
 //
 import fr.arolla.core.Question
 import fr.arolla.core.QuestionGenerator
-import fr.arolla.core.question.QuestionMultipleChoice
+import fr.arolla.core.question.invalid.CorruptedQuestion
 import fr.arolla.core.question.invalid.EOFQuestion
+import fr.arolla.core.question.invalid.RandomBytesQuestion
+import fr.arolla.core.question.invalid.LoremIpsumQuestion
 import fr.arolla.util.Randomizator
 // ----------------------------------------------------------------------------
 //
@@ -32,26 +34,25 @@ version = "1.0.0"
 //
 // ----------------------------------------------------------------------------
 
-weight = 0.9 as double
+weight = 0.5 as double
 
 // ----------------------------------------------------------------------------
 //
 // QUESTIONS
 //
 // ----------------------------------------------------------------------------
-Randomizator random = new Randomizator();
 
 def questions = [
-        //new RandomBytesQuestion(5_000),
-        //new RandomBytesQuestion(1_000_000),
+        new RandomBytesQuestion(),
         new EOFQuestion(),
-       // new LoremIpsumQuestion()
+        new LoremIpsumQuestion(),
+        new CorruptedQuestion()
 ] as List
 
 
 public class QuestionChoiceGenerator implements QuestionGenerator {
 
-    List<QuestionMultipleChoice> questions
+    List<Question> questions
 
     @Override
     Question nextQuestion(int tick, Randomizator randomizator) {

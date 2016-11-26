@@ -39,7 +39,7 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
         log.info("Tick {} - Invoking {} on {}", tick, player.username(), player.url());
         QuestionOfPlayer qop = new QuestionOfPlayer(question, player);
 
-        return RxNetty.createHttpPost(player.url(), Observable.just(payload))
+        return RxNetty.createHttpPost(player.url()+"/quote", Observable.just(payload))
                 .flatMap(clientResponse -> {
                     HttpResponseStatus status = clientResponse.getStatus();
                     log.info("Tick {} - response received from {}: {}", tick, player.username(), status);

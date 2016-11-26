@@ -25,7 +25,8 @@ public class CompositeDispatcher implements QuestionDispatcher, FeedbackSender {
     @Override
     public Observable<QuestionOfPlayer> dispatchQuestion(int tick, Question question, Player player) {
             if(question.isCorrupted()){
-               return dosDispatcher.dispatchQuestion(tick, question, player);
+                log.warn("Corrupted dispatcher");
+                return dosDispatcher.dispatchQuestion(tick, question, player);
             }
             return defaultDispatcher.dispatchQuestion(tick, question, player);
     }

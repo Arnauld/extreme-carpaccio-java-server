@@ -5,21 +5,28 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.arolla.core.*;
 import fr.arolla.core.question.ResponseSupport;
+import fr.arolla.core.question.invalid.CorruptedQuestion;
+import fr.arolla.core.question.invalid.EOFQuestion;
+import fr.arolla.core.question.invalid.RandomBytesQuestion;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.netty.RxNetty;
+import io.reactivex.netty.protocol.http.client.HttpClientRequest;
 import io.reactivex.netty.protocol.http.client.HttpClientResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import rx.Observable;
-import rx.functions.Action1;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+
+import static rx.Observable.just;
+import static rx.Observable.range;
 
 public class RxNettyCorruptionDispatcher implements QuestionDispatcher, FeedbackSender {
 
@@ -37,13 +44,10 @@ public class RxNettyCorruptionDispatcher implements QuestionDispatcher, Feedback
     @Override
     public Observable<QuestionOfPlayer> dispatchQuestion(int tick, Question question, Player player) {
 
-
-        ByteBuf payload = getRandomBytes(question);
-
         log.info("Tick {} - Invoking {} on {}", tick, player.username(), player.url());
         QuestionOfPlayer qop = new QuestionOfPlayer(question, player);
-        final Integer[] i = {0};
-        Observable<HttpClientResponse<ByteBuf>> httpPost = RxNetty.createHttpPost(player.url(), Observable.just(payload)).skip(50);
+
+        Observable<HttpClientResponse<ByteBuf>> httpPost = createHttpPost(player, question);
 
         return httpPost.flatMap(clientResponse -> {
             HttpResponseStatus status = clientResponse.getStatus();
@@ -60,56 +64,63 @@ public class RxNettyCorruptionDispatcher implements QuestionDispatcher, Feedback
                         });
             }
             if (status.equals(HttpResponseStatus.BAD_REQUEST)) {
-                return Observable.just(ResponseDto.rejected());
+                return just(ResponseDto.rejected());
             }
-            return Observable.just(ResponseDto.invalid());
+            return just(ResponseDto.invalid());
 
         })
                 .onErrorReturn(err -> {
                     log.error("Tick {} - Ooops for {}", tick, player.username(), err);
                     return ResponseDto.error(err);
                 })
-                .timeout(10L, TimeUnit.SECONDS, Observable.just(ResponseDto.timeout()))
+                .timeout(10L, TimeUnit.SECONDS, just(ResponseDto.timeout()))
                 .map(response -> consolidateResponse(qop, response));
     }
 
-    private Action1<? super HttpClientResponse<ByteBuf>> closeStream() {
-        return new Action1<HttpClientResponse<ByteBuf>>() {
-            @Override
-            public void call(HttpClientResponse<ByteBuf> byteBufHttpClientResponse) {
-
-            }
-        };
-    }
-
-    private Observable.Transformer<HttpClientResponse<ByteBuf>, HttpClientResponse<ByteBuf>> closeStreamRandomly() {
-        return t -> {
-            log.warn("soon close randomly");
-            t.count().forEach(x -> log.warn("Count=" + x));
-            if (RANDOM.nextBoolean() == RANDOM.nextBoolean()) {
-                //throw new IllegalArgumentException("we close the stream for evil plan");
-            }
-            return null;
-        };
-    }
-
-    private ByteBuf getRandomBytes(Question question) {
-
-
-
-        CustomByteBuf payload = new CustomByteBuf();
-        byte[] randomBytes;
-        try {
-            randomBytes = objectMapper.writeValueAsBytes(question.questionData());
-            payload.writeBytes(randomBytes);
-            return payload;
-        } catch (Exception e) {
-            randomBytes = new byte[10_000];
-            random.nextBytes(randomBytes);
-            payload.writeBytes(randomBytes);
-            return payload;
+    private Observable<HttpClientResponse<ByteBuf>> createHttpPost(Player player, Question question) {
+        String url = player.url() + "/quote";
+        ByteBuf value = toBytes("{\"country\":\"PL\",\"departureDate\":\"2016-12-02\", \"returnDate\":\"2016-12-25\",\"travellerAges\":[82],\"options\":[],\"cover\":\"Basic\"}");
+        if (question instanceof RandomBytesQuestion) {
+            return RxNetty.createHttpPost(url, range(0, 10000).map(this::randomByteBuff));
         }
 
+        if (question instanceof EOFQuestion) {
+
+            return RxNetty.createHttpRequest(
+                    HttpClientRequest.createPost(url)
+                            .withContentSource(Observable.just(value.readBytes(random.nextInt(100))))
+                                    .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), "application/json")
+                                    .withHeader(HttpHeaderNames.ACCEPT.toString(), "application/json"));
+        }
+        if (question instanceof CorruptedQuestion) {
+            value.setByte(8, 4);
+            value.setByte(16, 4);
+            value.setByte(25, 4);
+
+            return RxNetty.createHttpRequest(
+                    HttpClientRequest.createPost(url)
+                            .withContentSource(Observable.just(value))
+                            .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), "application/json")
+                            .withHeader(HttpHeaderNames.ACCEPT.toString(), "application/json")
+                            .withHeader(HttpHeaderNames.CONTENT_LENGTH.toString(), "999999")
+            );
+
+        }
+        return RxNetty.createHttpRequest(
+                HttpClientRequest.createPost(url)
+                        .withContentSource(Observable.just(value.readBytes(random.nextInt(50))))
+                        .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), "application/json")
+                        .withHeader(HttpHeaderNames.ACCEPT.toString(), "application/json")
+                        .withHeader(HttpHeaderNames.CONTENT_LENGTH.toString(), "-5")
+        );
+    }
+
+    private ByteBuf randomByteBuff(Integer x) {
+        byte[] randomBytes = new byte[5];
+        RANDOM.nextBytes(randomBytes);
+        ByteBuf payload = ByteBufAllocator.DEFAULT.buffer(randomBytes.length);
+        payload.writeBytes(randomBytes);
+        return payload;
     }
 
     @Override
@@ -118,7 +129,7 @@ public class RxNettyCorruptionDispatcher implements QuestionDispatcher, Feedback
         Player player = feedback.getPlayer();
         log.info("Notifying answer to player {} at tick {}", player.username(), tick);
         log.debug("sending feedback {} to player {} at tick {}", feedback, player.username(), tick);
-        RxNetty.createHttpPost(player.url(), Observable.just(payload))
+        RxNetty.createHttpPost(player.url() + "/feedback", just(payload))
                 .doOnError(
                         err -> log.error("Tick {} - error while sending feedback for {}", tick, player.username(), err)
                 )
@@ -155,6 +166,18 @@ public class RxNettyCorruptionDispatcher implements QuestionDispatcher, Feedback
         } catch (JsonProcessingException e) {
             log.error("Fail to serialize feedback {}", feedback, e);
             throw new RuntimeException("Fail to serialize feedback", e);
+        }
+    }
+
+    private ByteBuf toBytes(String data) {
+        try {
+            byte[] bytes = objectMapper.writeValueAsBytes(data);
+            ByteBuf buffer = ByteBufAllocator.DEFAULT.buffer(bytes.length);
+            buffer.writeBytes(bytes);
+            return buffer;
+        } catch (JsonProcessingException e) {
+            log.error("Fail to serialize question {}", data, e);
+            throw new RuntimeException("Fail to serialize question", e);
         }
     }
 

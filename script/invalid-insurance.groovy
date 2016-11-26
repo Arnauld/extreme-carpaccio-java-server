@@ -188,4 +188,9 @@ public class InvalidTQuestionInsurance implements Question {
     double lossOfflinePenalty() {
         return lossPenalty()
     }
+
+    @Override
+    boolean isCorrupted() {
+        return false
+    }
 }

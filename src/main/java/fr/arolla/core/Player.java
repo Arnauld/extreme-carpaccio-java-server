@@ -1,5 +1,7 @@
 package fr.arolla.core;
 
+import java.time.LocalDateTime;
+
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
@@ -9,11 +11,15 @@ public class Player {
     private double cash;
     private boolean online;
     private String url;
+    private LocalDateTime lastGoodAnswerTime;
+    private boolean hasGoodAnswered;
 
     public Player(String username, String password, String url) {
         this.username = username;
         this.password = password;
         this.url = url;
+        lastGoodAnswerTime = LocalDateTime.now();
+        hasGoodAnswered = false;
     }
 
     public String username() {
@@ -46,6 +52,11 @@ public class Player {
 
     public String password() {
         return password;
+    }
+
+    public void answersGood(){
+        lastGoodAnswerTime = LocalDateTime.now();
+        hasGoodAnswered = true;
     }
 
 }

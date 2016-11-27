@@ -159,12 +159,12 @@ public class QuestionInsurance extends QuestionSupport implements Question {
     @Override
     Question.ResponseValidation accepts(@NotNull Question.Response response) {
         double expected = data.quote
-        Optional<Double> valueOpt = response.get("quote", Double.class);
+        Optional<Number> valueOpt = response.get("quote", Number.class);
         if (valueOpt.isPresent())
             return Question.ResponseValidation
                     .of(valueOpt
-                    .map({ double actual ->
-                Math.abs(expected - actual) < 1e-3
+                    .map({ Number actual ->
+                Math.abs(expected - actual.doubleValue()) < 1e-3
             })
                     .orElse(false), { -> String.format("%.2f", expected) })
 

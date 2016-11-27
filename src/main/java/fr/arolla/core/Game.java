@@ -57,7 +57,7 @@ public class Game {
 
     private Feedback sendFeedback(Feedback fb, int tick) {
         if (fb.hasFeedback()) {
-            feedback.notify(fb, tick);
+            feedback.notify(tick, fb);
         }
         return fb;
     }

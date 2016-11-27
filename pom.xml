@@ -87,8 +87,20 @@
 
         <dependency>
             <groupId>io.reactivex</groupId>
-            <artifactId>rxnetty</artifactId>
-            <version>0.4.19</version>
+            <artifactId>rxnetty-http</artifactId>
+            <version>0.5.2-rc.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.reactivex</groupId>
+            <artifactId>rxnetty-tcp</artifactId>
+            <version>0.5.2-rc.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.reactivex</groupId>
+            <artifactId>rxnetty-common</artifactId>
+            <version>0.5.2-rc.5</version>
         </dependency>
 
         <!-- remove runtime scope from reactivex -->

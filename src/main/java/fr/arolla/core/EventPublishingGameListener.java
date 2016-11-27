@@ -4,6 +4,7 @@ import fr.arolla.core.event.IterationStartedEvent;
 import fr.arolla.core.event.PlayerCashLostEvent;
 import fr.arolla.core.event.PlayerCashWonEvent;
 import fr.arolla.core.event.PlayerOnlineStatusChangedEvent;
+import fr.arolla.core.event.PlayerQuestionSkippedEvent;
 import fr.arolla.core.event.QuestionDispatchedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -44,5 +45,10 @@ public class EventPublishingGameListener implements GameListener {
     @Override
     public void playerOnline(int tick, String username, boolean online) {
         publisher.publish(new PlayerOnlineStatusChangedEvent(tick, username, online));
+    }
+
+    @Override
+    public void playerSkipQuestion(int tick, String username) {
+        publisher.publish(new PlayerQuestionSkippedEvent(tick, username));
     }
 }

@@ -13,7 +13,8 @@ public class QuestionOfPlayer {
         NotSent,
         Timeout,
         QuestionRejected,
-        Error
+        Error,
+        Skip
     }
 
     private final Question question;

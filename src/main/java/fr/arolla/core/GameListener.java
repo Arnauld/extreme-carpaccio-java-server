@@ -13,4 +13,6 @@ public interface GameListener {
     void playerWon(int tick, String username, double amount);
 
     void playerOnline(int tick, String username, boolean online);
+
+    void playerSkipQuestion(int tick, String username);
 }

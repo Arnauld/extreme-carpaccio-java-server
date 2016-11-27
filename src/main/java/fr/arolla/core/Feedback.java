@@ -71,6 +71,8 @@ public class Feedback {
 
     @Override
     public String toString() {
+        if(this == NO_FEEDBACK)
+            return "Feedback{none}";
         return "Feedback{" +
                 "player=" + player.username() +
                 ", message='" + message + '\'' +

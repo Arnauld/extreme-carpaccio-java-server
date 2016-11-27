@@ -20,6 +20,7 @@ import rx.Observable;
 import rx.functions.Func1;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -49,10 +50,10 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
         QuestionOfPlayer qop = new QuestionOfPlayer(question, player);
 
         return RxNetty.createHttpRequest(
-                HttpClientRequest.createPost(player.url()+ QUOTE_PATH)
+                HttpClientRequest.createPost(player.url() + QUOTE_PATH)
                         .withContentSource(Observable.just(payload))
-                        .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(),"application/json")
-                        .withHeader(HttpHeaderNames.ACCEPT.toString(),"application/json"))
+                        .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), "application/json")
+                        .withHeader(HttpHeaderNames.ACCEPT.toString(), "application/json"))
 
                 .flatMap(extractResponse(tick, player))
                 .onErrorReturn(toError(tick, player))
@@ -67,6 +68,9 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
 
             if (status.equals(HttpResponseStatus.OK)) {
                 return toResponseObservable(tick, player, clientResponse);
+            }
+            if (status.equals(HttpResponseStatus.NO_CONTENT)) {
+               return Observable.just(ResponseDto.skip());
             }
             if (status.equals(HttpResponseStatus.BAD_REQUEST)) {
                 return Observable.just(ResponseDto.rejected());
@@ -86,6 +90,10 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
 
     private Func1<Throwable, ResponseDto> toError(int tick, Player player) {
         return err -> {
+            if(err instanceof ConnectException) {
+                log.warn("Tick {} - Fail to connect to {}: {}", tick, player.username(), err.getMessage());
+                return ResponseDto.offline();
+            }
             log.error("Tick {} - Ooops for {}", tick, player.username(), err);
             return ResponseDto.error(err);
         };
@@ -98,10 +106,10 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
         log.info("Notifying answer to player {} at tick {}", player.username(), tick);
         log.debug("sending feedback {} to player {} at tick {}", feedback, player.username(), tick);
         RxNetty.createHttpRequest(
-                HttpClientRequest.createPost(player.url()+ FEEDBACK_PATH)
+                HttpClientRequest.createPost(player.url() + FEEDBACK_PATH)
                         .withContentSource(Observable.just(payload))
-                        .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(),"application/json")
-                        .withHeader(HttpHeaderNames.ACCEPT.toString(),"application/json"))
+                        .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), "application/json")
+                        .withHeader(HttpHeaderNames.ACCEPT.toString(), "application/json"))
 
                 .doOnError(
                         err -> log.error("Tick {} - error while sending feedback for {}", tick, player.username(), err)
@@ -176,9 +184,16 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
             return new ResponseDto().withStatus(QuestionOfPlayer.Status.QuestionRejected);
         }
 
-
         public static ResponseDto timeout() {
             return new ResponseDto().withStatus(QuestionOfPlayer.Status.Timeout);
+        }
+
+        public static ResponseDto skip() {
+            return new ResponseDto().withStatus(QuestionOfPlayer.Status.Skip);
+        }
+
+        public static ResponseDto offline() {
+            return new ResponseDto().withStatus(QuestionOfPlayer.Status.UnreachablePlayer);
         }
 
         private ResponseDto withResponse(Map<String, Object> response) {

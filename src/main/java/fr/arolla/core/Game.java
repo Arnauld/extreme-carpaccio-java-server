@@ -46,10 +46,10 @@ public class Game {
                 .map(qop -> evaluateAnswer(qop, tick))
                 .map(fb -> sendFeedback(fb, tick))
                 .subscribe(
-                        next -> log.info("qop received and feedbacked for tick {}.", next, tick),
-                        error -> log.error("Ooops (during tick {})", tick, error),
+                        next -> log.info("Tick {} - qop received and feedbacked", tick, next),
+                        error -> log.error("Tick {} - Ooops", tick, error),
                         () -> {
-                            log.info("Everything is fine for tick {}.", tick);
+                            log.info("Tick {} - Everything is fine", tick);
                             players.saveState();
                         }
                 );
@@ -88,7 +88,17 @@ public class Game {
                     fb = Feedback.losing(qop);
                 }
                 break;
+            case Skip:
+                players.addCash(qop.username(), 0);
+                listener.playerSkipQuestion(tick, qop.username());
+                fb = Feedback.NO_FEEDBACK; // no need to send a feedback
+                break;
             case UnreachablePlayer:
+                online = false;
+                players.addCash(qop.username(), qop.lossOfflinePenalty());
+                listener.playerLost(tick, qop.username(), qop.lossOfflinePenalty(), "offline");
+                fb = Feedback.NO_FEEDBACK; // no need to send a feedback to an offline player
+                break;
             case Timeout:
             case NoResponseReceived:
                 online = false;
@@ -110,7 +120,7 @@ public class Game {
             case NotSent:
             default:
                 online = false;
-                log.warn("Unsupported status {} for player {} (during tick {})", qop.status(), qop.username(), tick);
+                log.warn("Tick {} - Unsupported status {} for player {}", tick, qop.status(), qop.username());
         }
 
         markPlayerOnline(tick, qop, online);

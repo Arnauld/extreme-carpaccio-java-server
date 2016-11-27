@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -148,6 +149,8 @@ public class PersistentPlayers implements Players {
                 Stream.of(data.split(DATA_SEPARATOR)).forEach(unserializer);
             }
             log.info("{} loaded", fileName);
+        } catch (NoSuchFileException nsfe){
+            log.warn("no persis file {}", fileName);
         } catch (IOException e) {
             log.error("ERROR while trying to read {}", fileName, e);
         }

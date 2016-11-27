@@ -8,6 +8,7 @@ import fr.arolla.core.event.PlayerRegisteredEvent;
 import fr.arolla.core.event.PlayerUrlUpdatedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -25,10 +26,29 @@ public class RegistrationCommand {
     private String password;
     private String url;
 
-    public RegistrationCommand(Players players, Event.Publisher eventPublisher,int tick) {
+    public RegistrationCommand(Players players, Event.Publisher eventPublisher, int tick) {
         this.players = players;
         this.eventPublisher = eventPublisher;
-        this.tick=tick;
+        this.tick = tick;
+    }
+
+    static String validate(String url) {
+        return !StringUtils.startsWithIgnoreCase(url, "http://") ? "http://" + url : url;
+    }
+
+    private static String hidePassword(String password) {
+        //noinspection ReplaceAllDot
+        return password == null ? null : password.replaceAll(".", "x");
+    }
+
+    private static boolean isBlank(String s) {
+        return s == null || s.trim().isEmpty();
+    }
+
+    private static void checkCredentials(Player player, String password) {
+        if (Objects.equals(player.password(), password) || GENERIC_PASSWORD.equals(password))
+            return;
+        throw new InvalidCredentialException();
     }
 
     public RegistrationCommand withUsername(String username) {
@@ -56,41 +76,27 @@ public class RegistrationCommand {
 
         if (isBlank(username) || isBlank(password) || (isBlank(url) && !playerOpt.isPresent())) {
             log.warn("Invalid parameters '{}' / '{}': '{}'", username, hidePassword(password));
-            eventPublisher.publish(new InvalidRegistrationEvent(username,tick, url));
+            eventPublisher.publish(new InvalidRegistrationEvent(username, tick, url));
             throw new InvalidParametersException();
         }
 
         if (playerOpt.isPresent()) {
             Player player = playerOpt.get();
             checkCredentials(player, password);
-            if(isBlank(url)){
+            if (isBlank(url)) {
                 players.remove(player);
-            }else {
-                player.changeUrl(url);
+            } else {
+                String validurl = validate(url);
+                player.changeUrl(validurl);
                 players.update(player);
-                eventPublisher.publish(new PlayerUrlUpdatedEvent(username, tick, url));
+                eventPublisher.publish(new PlayerUrlUpdatedEvent(username, tick, validurl));
             }
         } else {
-            Player player = new Player(username, password, url);
+            String validurl = validate(url);
+            Player player = new Player(username, password, validurl);
             players.add(player);
-            eventPublisher.publish(new PlayerRegisteredEvent(username,tick, url));
+            eventPublisher.publish(new PlayerRegisteredEvent(username, tick, validurl));
         }
-    }
-
-
-    private static String hidePassword(String password) {
-        //noinspection ReplaceAllDot
-        return password == null ? null : password.replaceAll(".", "x");
-    }
-
-    private static boolean isBlank(String s) {
-        return s == null || s.trim().isEmpty();
-    }
-
-    private static void checkCredentials(Player player, String password) {
-        if (Objects.equals(player.password(), password) || GENERIC_PASSWORD.equals(password))
-            return;
-        throw new InvalidCredentialException();
     }
 
 }

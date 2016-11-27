@@ -42,10 +42,10 @@ public class WebControllerTest {
         Player existingPlayer = new Player(NAME, "password", "url");
         when(players.findByName(NAME)).thenReturn(Optional.of(existingPlayer));
 
-        webController.registerPlayer(new PlayerRegistrationDto(NAME, "password", "new-url"));
+        webController.registerPlayer(new PlayerRegistrationDto(NAME, "password", "http://new-url"));
 
         verify(players).update(existingPlayer);
-        assertThat(existingPlayer.url()).isEqualTo("new-url");
+        assertThat(existingPlayer.url()).isEqualTo("http://new-url");
     }
 
     @Test(expected = InvalidCredentialException.class)

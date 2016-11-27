@@ -2,14 +2,142 @@
 
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml" />
-    <!--<include resource="logback-prod.xml" />-->
-    <if condition='isDefined("spring.profiles.active")'>
-        <then>
-            <include resource="logback-${spring.profiles.active}.xml" />
-        </then>
-        <else>
-            <include resource="logback-dev.xml" />
-        </else>
-    </if>
+
+    <springProfile name="dev">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <charset>utf-8</charset>
+                <Pattern>[%-5p] %d %c.%M\(\) \(l.%L\) - %m%n</Pattern>
+                <!--[%thread]-->
+            </encoder>
+        </appender>
+
+        <logger name="fr.arolla" level="DEBUG"/>
+
+        <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+            <resetJUL>true</resetJUL>
+        </contextListener>
+
+        <root level="WARN">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+    <springProfile name="prod">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <charset>utf-8</charset>
+                <Pattern>[%-5p] %d %c.%M\(\) \(l.%L\) - %m%n</Pattern>
+                <!--[%thread]-->
+            </encoder>
+        </appender>
+
+        <appender name="BASE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_PATH}/all.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>30</maxHistory>
+            </rollingPolicy>
+            <encoder>
+                <charset>utf-8</charset>
+                <Pattern>%d %-5level [%25thread] %logger{0}: %msg%n</Pattern>
+            </encoder>
+        </appender>
+
+        <appender name="EVENTS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_PATH}/events.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>30</maxHistory>
+            </rollingPolicy>
+            <encoder>
+                <charset>utf-8</charset>
+                <Pattern>%d %-5level [%25thread] %logger{0}: %msg%n</Pattern>
+            </encoder>
+        </appender>
+
+        <appender name="QUESTIONS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_PATH}/questions.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>30</maxHistory>
+            </rollingPolicy>
+            <encoder>
+                <charset>utf-8</charset>
+                <Pattern>%d %-5level [%25thread] %logger{0}: %msg%n</Pattern>
+            </encoder>
+        </appender>
+
+        <appender name="FEEDBACKS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_PATH}/feedbacks.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>30</maxHistory>
+            </rollingPolicy>
+            <encoder>
+                <charset>utf-8</charset>
+                <Pattern>%d %-5level [%25thread] %logger{0}: %msg%n</Pattern>
+            </encoder>
+        </appender>
+
+        <appender name="ASYNC_BASE" class="ch.qos.logback.classic.AsyncAppender">
+            <queueSize>512</queueSize>
+            <appender-ref ref="BASE"/>
+        </appender>
+
+        <appender name="ASYNC_QUESTIONS" class="ch.qos.logback.classic.AsyncAppender">
+            <queueSize>512</queueSize>
+            <appender-ref ref="QUESTIONS"/>
+        </appender>
+
+        <appender name="ASYNC_FEEDBACKS" class="ch.qos.logback.classic.AsyncAppender">
+            <queueSize>512</queueSize>
+            <appender-ref ref="FEEDBACKS"/>
+        </appender>
+
+        <appender name="ASYNC_EVENTS" class="ch.qos.logback.classic.AsyncAppender">
+            <queueSize>512</queueSize>
+            <appender-ref ref="EVENTS"/>
+        </appender>
+
+        <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+            <resetJUL>true</resetJUL>
+        </contextListener>
+
+        <logger name="fr.arolla" level="INFO"/>
+        <logger name="org.apache.catalina.startup.DigesterFactory" level="OFF"/>
+        <logger name="org.hibernate.ejb.HibernatePersistence" level="OFF"/>
+
+        <logger name="fr.arolla" level="DEBUG">
+            <appender-ref ref="CONSOLE" />
+        </logger>
+
+        <logger name="fr.arolla.events" level="DEBUG">
+            <appender-ref ref="ASYNC_EVENTS" />
+        </logger>
+
+        <logger name="fr.arolla.infra.RxNettyDispatcher" level="DEBUG">
+            <appender-ref ref="ASYNC_QUESTIONS" />
+        </logger>
+
+        <root level="WARN">
+            <appender-ref ref="ASYNC_BASE"/>
+        </root>
+    </springProfile>
+    <springProfile name="yvan">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <charset>utf-8</charset>
+                <Pattern>[%p] %d %c.%M\(\) \(l.%L\) - %m%n</Pattern>
+                <!--[%thread]-->
+            </encoder>
+        </appender>
+
+        <logger name="fr.arolla.infra.RxNettyDispatcher" level="OFF"/>
+        <logger name="fr.arolla" level="DEBUG"/>
+
+        <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+            <resetJUL>true</resetJUL>
+        </contextListener>
+
+        <root level="WARN">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
 </configuration>
 

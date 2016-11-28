@@ -7,8 +7,8 @@
 //
 import fr.arolla.core.Question
 import fr.arolla.core.QuestionGenerator
+import fr.arolla.core.question.CorruptedQuestion
 import fr.arolla.core.question.QuestionMultipleChoice
-import fr.arolla.core.question.RandomBytesQuestion
 import fr.arolla.util.Randomizator
 // ----------------------------------------------------------------------------
 //
@@ -42,8 +42,7 @@ weight = 0.0 as double
 Randomizator random = new Randomizator();
 
 def questions = [
-        new RandomBytesQuestion(5_000),
-        new RandomBytesQuestion(1_000_000),
+        new CorruptedQuestion(),
 ] as List
 
 

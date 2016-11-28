@@ -315,14 +315,104 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 				.collect({option -> optionPrices[option]})
 				.inject(0, { sum, price -> sum + price })
 	}
-	
+
+	def toTravellers(int[] travellersAge, Country country) {
+		TypoPassenger[] passengers = new TypoPassenger[travellersAge.length];
+		int[] am = getAgeMapping(country)
+		int ageToBeAdult=am[0]
+		int ageToBeSenior=am[1]
+
+		for(int index=0;index<travellersAge.length;index++){
+			if(travellersAge[index]<ageToBeAdult){
+				passengers[index]=TypoPassenger.CHILD
+			}else if(travellersAge[index]<ageToBeSenior) {
+				passengers[index]=TypoPassenger.ADULT
+			}else{
+				passengers[index]=TypoPassenger.SENIOR
+			}
+		}
+		passengers
+
+	}
+
+	private getAgeMapping(Country country) {
+		switch (country) {
+		//case Country.FR:
+			case Country.MT:
+				return [18, 60]
+
+//          case Country.IT:
+//          case Country.NL:
+//			case Country.UK:
+			case Country.LU:
+				return [15, 60]
+//            case Country.ES:
+//			case Country.EL:
+			case Country.EE:
+//            case Country.PT:
+				return [12, 65]
+
+//			case Country.CZ:
+			case Country.CY:
+				//          case Country.LT:
+				//          case Country.SI:
+				//          case Country.LV:
+				//          case Country.RO:
+				//          case Country.BG:
+				return [15, 55]
+			default:
+				return [18, 65]
+		}
+	}
+
 	def quote(Data data, Map config) {
+
+
+		TravelData travel = new TravelData(
+				country: data.country,
+				departureDate: data.departureDate,
+				nbDays: LocalDates.nbDaysBefore(data.departureDate, data.returnDate),
+				cover: data.cover,
+				travellers: toTravellers(data.travellerAges,data.country),
+				options: data.options
+		)
+
 		double price = coverPrice(data.cover, config["coverPrices"])
 		double sumOfAges = sumOfRiskAdjustedAges(data.travellerAges, config["ageRisks"])
 		double countryRisk = countryRisk(data.country, config["countriesRisks"])
-		long nbDays = LocalDates.nbDaysBefore(data.departureDate,data.returnDate)
-		double optionPrice  = optionPrice(data.options, config["optionsPrices"])
+
+		double optionPrice = optionPrice(data.options, config["optionsPrices"])
+		int nbDays = travel.nbDays
+
+		//au delà de 3 semaines,on ne facture que les semaines pleines
+		if(((int)travel.nbDays/7)>=3){
+			nbDays=((int)travel.nbDays/7)*7
+		}
+
 		double total = price * countryRisk * sumOfAges * nbDays + optionPrice
+
+		if(true){
+			int nbChilds=travel.travellers.findAll { t -> TypoPassenger.CHILD }.toList().size()
+			int nbAdults=travel.travellers.findAll { t -> TypoPassenger.ADULT }.toList().size()
+			int nbSeniors=travel.travellers.findAll { t -> TypoPassenger.SENIOR }.toList().size()
+			//réduction pack famille
+			if(nbChilds==2 && nbAdults==2){
+				total-=(total*20/100)
+			}
+
+			//seniors qui encadrent des enfants=> risque
+			if(nbAdults==0){
+				total+=(total*5/100)
+			}
+			//malus trop de personnes agées
+			if(nbSeniors>(nbAdults+nbChilds)){
+				total+=(total*nbSeniors/100)
+			}
+			//pas assez d'adultes encadrants
+			if(nbChilds-nbAdults>0){
+				total+=(total*15/100)
+			}
+		}
 		total
 	}
 	
@@ -388,4 +478,18 @@ public class Data {
 	@JsonIgnore
 	double quote;
 	//Country originCountry;// for dataviz
+}
+
+
+public class TravelData {
+	Country country;
+	LocalDate departureDate;
+	int nbDays;
+	TypoPassenger[] travellers;
+	List<Option> options;
+	Cover cover;
+}
+
+public enum TypoPassenger {
+	CHILD, ADULT, SENIOR
 }

@@ -571,6 +571,7 @@ public class QuestionInsuranceCrossSelling extends QuestionSupport implements Qu
 		// Reward score much more than regular: 300 instead of 100
 
 		def REWARD = 300.0;
+		def myReward = 0.0;
 
 		// Abusing the cross-selling offers and you loose the customer trust completely
 
@@ -593,7 +594,7 @@ public class QuestionInsuranceCrossSelling extends QuestionSupport implements Qu
 		if (data.cover == Cover.Basic) {
 
 			if(offers.any { offer -> containsAny(offer, ["free"]) }){
-				return REWARD/3
+				myReward+=20
 			}
 
 		}
@@ -605,7 +606,7 @@ public class QuestionInsuranceCrossSelling extends QuestionSupport implements Qu
 			containsAny(offer, ["visa", "passport"])
 		}) {
 
-			return REWARD
+			myReward+=50
 
 		}
 
@@ -628,7 +629,7 @@ public class QuestionInsuranceCrossSelling extends QuestionSupport implements Qu
 			])
 		}) {
 
-			return REWARD
+			myReward+=60
 
 		}
 
@@ -657,7 +658,7 @@ public class QuestionInsuranceCrossSelling extends QuestionSupport implements Qu
 			])
 		}) {
 
-			return REWARD
+			myReward+=70
 
 		}
 
@@ -676,8 +677,7 @@ public class QuestionInsuranceCrossSelling extends QuestionSupport implements Qu
 			])
 		}) {
 
-			return REWARD
-
+			myReward+=40
 		}
 
 		// USA (MISSING COUNTRY) needs ESTA
@@ -687,7 +687,7 @@ public class QuestionInsuranceCrossSelling extends QuestionSupport implements Qu
 			containsAny(offer, ["esta",])
 		}) {
 
-			return REWARD
+			myReward+=50
 
 		}
 
@@ -704,7 +704,7 @@ public class QuestionInsuranceCrossSelling extends QuestionSupport implements Qu
 			])
 		}) {
 
-			return REWARD
+			myReward+=70
 
 		}
 
@@ -731,7 +731,7 @@ public class QuestionInsuranceCrossSelling extends QuestionSupport implements Qu
 			])
 		}) {
 
-			return REWARD
+			myReward+=60
 
 		}
 
@@ -754,7 +754,7 @@ public class QuestionInsuranceCrossSelling extends QuestionSupport implements Qu
 			])
 		}) {
 
-			return REWARD
+			myReward+=50
 
 		}
 
@@ -787,11 +787,11 @@ public class QuestionInsuranceCrossSelling extends QuestionSupport implements Qu
 			])
 		}) {
 
-			return REWARD
+			myReward+=55
 
 		}
 
-		0
+		return myReward
 
 	}
 	def containsAny(String token, List<String> keywords){

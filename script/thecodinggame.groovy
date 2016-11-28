@@ -33,7 +33,7 @@ version = "1.0.0"
 //
 // ----------------------------------------------------------------------------
 
-weight = 0.9 as double
+weight = 0.5 as double
 
 // ----------------------------------------------------------------------------
 //
@@ -119,6 +119,7 @@ public class QuestionInsurance extends QuestionSupport implements Question {
         return 100d
     }
 }
+
 
 
 public class QuestionInsuranceGenerator implements QuestionGenerator {
@@ -367,15 +368,7 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 
 	def quote(Data data, Map config) {
 
-
-		TravelData travel = new TravelData(
-				country: data.country,
-				departureDate: data.departureDate,
-				nbDays: LocalDates.nbDaysBefore(data.departureDate, data.returnDate),
-				cover: data.cover,
-				travellers: toTravellers(data.travellerAges,data.country),
-				options: data.options
-		)
+		TravelData travel = toTravelData(data)
 
 		double price = coverPrice(data.cover, config["coverPrices"])
 		double sumOfAges = sumOfRiskAdjustedAges(data.travellerAges, config["ageRisks"])
@@ -391,7 +384,7 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 
 		double total = price * countryRisk * sumOfAges * nbDays + optionPrice
 
-		if(true){
+		if(false){
 			int nbChilds=travel.travellers.findAll { t -> TypoPassenger.CHILD }.toList().size()
 			int nbAdults=travel.travellers.findAll { t -> TypoPassenger.ADULT }.toList().size()
 			int nbSeniors=travel.travellers.findAll { t -> TypoPassenger.SENIOR }.toList().size()
@@ -415,7 +408,19 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 		}
 		total
 	}
-	
+
+	private TravelData toTravelData(Data data) {
+		TravelData travel = new TravelData(
+				country: data.country,
+				nbDaysToDeparture: LocalDates.nbDaysBefore(LocalDate.now(), data.departureDate),
+				nbDays: LocalDates.nbDaysBefore(data.departureDate, data.returnDate),
+				cover: data.cover,
+				travellers: toTravellers(data.travellerAges, data.country),
+				options: data.options
+		)
+		travel
+	}
+
 	def testStandardQuote(){
 		def config = phase2();
 		println config
@@ -454,13 +459,21 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 		data.quote = quote
 		data
 	}
-	
+/*
 	@Override
 	Question nextQuestion(int tick, Randomizator randomizator) {
 		def config = phase1() // CHANGE HERE THE PHASE & STEP OF THE GAME
 		Data data = generateData(randomizator, config)
 		return new QuestionInsurance(data: data)
 	}
+*/
+	@Override
+	Question nextQuestion(int tick, Randomizator randomizator) {
+		def config = phase3(10)
+		Data data = generateData(randomizator, config)
+		return new 	QuestionInsuranceCrossSelling(data: data,travelData: toTravelData(data))
+	}
+
 }
 
 generator = new QuestionInsuranceGenerator()
@@ -483,7 +496,7 @@ public class Data {
 
 public class TravelData {
 	Country country;
-	LocalDate departureDate;
+	int nbDaysToDeparture;
 	int nbDays;
 	TypoPassenger[] travellers;
 	List<Option> options;
@@ -492,4 +505,375 @@ public class TravelData {
 
 public enum TypoPassenger {
 	CHILD, ADULT, SENIOR
+}
+
+public class QuestionInsuranceCrossSelling extends QuestionSupport implements Question {
+
+	Data data
+	TravelData travelData
+
+	double penalty = -50d
+	private double gains = 100d
+
+
+	@Override
+	Data questionData() {
+		return data
+	}
+
+	@Override
+	Question.ResponseValidation accepts(@NotNull Question.Response response) {
+		String expected = "good cross selling proposals"
+		Optional<List<String>> offersOpt = response.get("offers", List.class);
+		if (offersOpt.isPresent())
+			return Question.ResponseValidation
+					.of(offersOpt
+					.map({ List<String> actual ->
+				reward(travelData, actual)
+			}).map({ r -> checkReward(r) }).orElse(false), { -> expected })
+
+		return Question.ResponseValidation.rejected("Missing property 'offers' of type String arrays = " + data.quote);
+	}
+
+	private boolean checkReward(reward) {
+		if (reward <= 0) {
+			penalty = reward;
+			return false;
+		} else {
+			gains=reward
+			return true;
+		}
+	}
+
+	@Override
+	double lossErrorPenalty() {
+		return penalty
+	}
+
+	@Override
+	double lossOfflinePenalty() {
+		return penalty
+	}
+
+	@Override
+	double lossPenalty() {
+		return penalty
+	}
+
+	@Override
+	double gainAmount() {
+		return gains
+	}
+
+
+	def reward(TravelData data, List<String> offers) {
+
+		// Reward score much more than regular: 300 instead of 100
+
+		def REWARD = 300.0;
+
+		// Abusing the cross-selling offers and you loose the customer trust completely
+
+		if (offers.size > 4) {
+
+			return -100.0
+
+		}
+
+		// Too many cross-selling offers and you sell none
+
+		if (offers.size >= 3) {
+
+			return 0
+
+		}
+
+		// Basic Cover is price-sensitive, only takes "free" offers
+
+		if (data.cover == Cover.Basic) {
+
+			if(offers.any { offer -> containsAny(offer, ["free"]) }){
+				return REWARD/3
+			}
+
+		}
+
+		// Departure in a a few days? You may need a visa / passport express
+
+		if (data.nbDaysToDeparture < 21 && offers.any { offer ->
+
+			containsAny(offer, ["visa", "passport"])
+		}) {
+
+			return REWARD
+
+		}
+
+		// Senior or Cover.Premier enjoy luguage transfer and shuttle or valet
+
+		if ((data.cover == Cover.Premier || data.travellers.contains(TypoPassenger.SENIOR))
+
+				&& offers.any { offer ->
+
+			containsAny(offer, [
+
+					"luguage",
+
+					"baggage",
+
+					'transfer',
+
+					"shuttle"
+
+			])
+		}) {
+
+			return REWARD
+
+		}
+
+		// Travelling with kids, may need a baby sitter or child care
+
+		if (data.travellers.contains(TypoPassenger.CHILD) && offers.any { offer ->
+
+			containsAny(offer, [
+
+					"baby sitter",
+
+					"baby sitting",
+
+					"babysitting",
+
+					"babysitter",
+
+					"child care",
+
+					"day care",
+
+					"child wellfare",
+
+					"nursery"
+
+			])
+		}) {
+
+			return REWARD
+
+		}
+
+		// Long term travel is like expat
+
+		if (data.nbDays > 90 && offers.any { offer ->
+
+			containsAny(offer, [
+
+					"moving",
+
+					"expat",
+
+					"relocation"
+
+			])
+		}) {
+
+			return REWARD
+
+		}
+
+		// USA (MISSING COUNTRY) needs ESTA
+
+		if (data.country == Country.UK && data.nbDaysToDeparture < 21 && offers.any { offer ->
+
+			containsAny(offer, ["esta",])
+		}) {
+
+			return REWARD
+
+		}
+
+		// USA (MISSING COUNTRY) is the country of cars
+
+		if (data.country == Country.UK && offers.any { offer ->
+
+			containsAny(offer, [
+
+					"car rental",
+
+					"car insurance"
+
+			])
+		}) {
+
+			return REWARD
+
+		}
+
+		//option = Skiing  -> "mountain" "guide" "wine" "pass" "restaurant" "club" "VIP" only if country = CH
+
+		if (data.options.contains(Option.Skiing) && data.cover == Cover.Premier && offers.any { offer ->
+
+			containsAny(offer, [
+
+					"vip",
+
+					"restaurant",
+
+					"helicopter",
+
+					"off piste",
+
+					"off-piste",
+
+					"mountain guide",
+
+					"club"
+
+			])
+		}) {
+
+			return REWARD
+
+		}
+
+		// Everybody loves apps
+
+		if (offers.any { offer ->
+
+			containsAny(offer, [
+
+					"mobile",
+
+					"ios",
+
+					"android",
+
+					"iphone",
+
+					"ipad"
+
+			])
+		}) {
+
+			return REWARD
+
+		}
+
+		// Everybody loves tourist guides
+
+		if (offers.any { offer ->
+
+			containsAny(offer, [
+
+					"lonely planet",
+
+					"tourism guide",
+
+					"tourist guide",
+
+					"traveller guide",
+
+					"touristic guide",
+
+					"tourist map",
+
+					"tourism map",
+
+					"traveller map",
+
+					"tourist info",
+
+					"travel info"
+
+			])
+		}) {
+
+			return REWARD
+
+		}
+
+		0
+
+	}
+	def containsAny(String token, List<String> keywords){
+
+		keywords.any { token.toLowerCase().contains( it)}
+
+	}
+
+}
+
+//---------------TESTS---------------
+
+def test_containsAny(){
+
+	assert containsAny("mobile app", ["mobile", "ios"])
+
+	assert containsAny("mobile app", ["app"])
+
+	assert containsAny("expat magazine", ["expat"])
+
+}
+
+def testAll(){
+
+	test_containsAny();
+
+	def REWARD = 300.0;
+
+	TravelData data = new TravelData(
+
+			country: Country.BE,
+
+			nbDaysToDeparture: 22,
+
+			nbDays: 10,
+
+			travellers: [],
+
+			options: [],
+
+			cover: Cover.Basic)
+
+	assert reward(data, [
+
+			"bla",
+
+			"bla",
+
+			"bla",
+
+			"bla",
+
+			"bla",
+
+			"bla"
+
+	]) == -100.0
+
+	assert reward(data, ["bla", "bla", "bla"]) == 0.0
+
+	data.cover  = Cover.Extra
+
+	assert reward(data, ["mobile app"]) == REWARD
+
+	data.nbDaysToDeparture = 7
+
+	assert reward(data, ["visa"]) == REWARD
+
+	data.nbDays = 92
+
+	data.nbDaysToDeparture = 30
+
+	assert reward(data, ["expat magazine"]) == REWARD
+
+	data.nbDays = 14
+
+	data.cover = Cover.Premier
+
+	assert reward(data, ["airport transfer"]) == REWARD
+
+	assert reward(data, ["airport shuttle"]) == REWARD
+
+	assert reward(data, ["luguage delivery"]) == REWARD
+
 }

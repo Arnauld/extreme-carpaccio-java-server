@@ -112,9 +112,10 @@ public class QuestionInsuranceGenerator1 implements QuestionGenerator {
 
         Data data1 = requestData(Country.FR, dpDate, dpDate.plusDays(2), randomizator.randomPositiveInts(1, 95), [], Cover.Basic)
         Data data2 = requestData(Country.BE, dpDate, dpDate.plusDays(1), randomizator.randomPositiveInts(2, 95), [], Cover.Basic)
-        Data data3 = requestData(Country.FI, dpDate, dpDate.plusDays(1), randomizator.randomPositiveInts(2, 95), [Option.Skiing], Cover.Basic)
+        Data data3 = requestData(Country.FR, dpDate, dpDate.plusDays(randomizator.randomInt(5)+3), randomizator.randomPositiveInts(1, 95), [], Cover.Basic)
 
-        Data data4 = requestData(Country.FR, dpDate, dpDate.plusDays(randomizator.randomInt(5)+3), randomizator.randomPositiveInts(1, 95), [], Cover.Basic)
+        Data data4 = requestData(Country.FI, dpDate, dpDate.plusDays(1), randomizator.randomPositiveInts(2, 95), [Option.Skiing], Cover.Basic)
+
 
         Data data = randomizator.pickOne([data1,data2,data3])
 //DECOMMENTER  data = randomizator.pickOne([data1,data2,data3,data4])
@@ -139,7 +140,7 @@ public class QuestionInsuranceGenerator1 implements QuestionGenerator {
 
     @Override
 	Question nextQuestion(int tick, Randomizator randomizator) {
-		def config = phase1() // CHANGE HERE THE PHASE & STEP OF THE GAME
+		def config = phase1()
         Data data = generateData(randomizator, config)
 		return new QuestionInsurance(data: data)
 	}
@@ -188,7 +189,7 @@ public class QuestionInsurance extends QuestionSupport implements Question {
 
     @Override
     double gainAmount() {
-        return 100d
+        return 50d
     }
 }
 

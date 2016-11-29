@@ -111,7 +111,7 @@ public class QuestionInsurance extends QuestionSupport implements Question {
 
     @Override
     double lossPenalty() {
-        return -50d
+        return -5d
     }
 
     @Override
@@ -141,80 +141,56 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 		result
 	}
 	
-	// Phase 1 of the game (simple discovery with simple formula using just traveller count)
-	def phase1(){
+	// carpaccio = full options/full country/full covers
+	def carpaccio(){
 		def config = [
 			"coverPrices": [
-				(Cover.Basic): 1.8
+					(Cover.Basic): 1.8,
+					(Cover.Extra): 2.4,
+					(Cover.Premier): 4.2
 			].asImmutable(),
 			"countriesRisks": [
-				(Country.ES): 1.0,
-				(Country.BE): 1.0,
-				(Country.FI): 1.0
-			].asImmutable(),
-			"ageRisks": [
-				(0): 1.0 // traveller count
+					(Country.DE): 0.8,
+					(Country.FR): 1.0,
+					(Country.UK): 1.1,
+					(Country.IT): 1.2,
+					(Country.ES): 1.1,
+					(Country.PL): 1.4,
+					(Country.RO): 1.3,
+					(Country.NL): 0.7,
+					(Country.EL): 0.6,
+					(Country.CZ): 1.2,
+					(Country.PT): 0.5,
+					(Country.HU): 1.1,
+					(Country.SE): 1.2,
+					(Country.AT): 0.9,
+					(Country.BE): 0.9,
+					(Country.BG): 1.1,
+					(Country.DK): 1.2,
+					(Country.FI): 0.8,
+					(Country.SK): 0.7,
+					(Country.IE): 1.1,
+					(Country.HR): 1.3,
+					(Country.LT): 0.7,
+					(Country.SI): 0.8,
+					(Country.LV): 0.6,
+					(Country.EE): 1.3,
+					(Country.CY): 1.6,
+					(Country.LU): 1.3,
+					(Country.MT): 1.2,
+
 			].asImmutable(),
 			"optionsPrices": [
-				(Option.Skiing): 24
+				(Option.Skiing): 24,
+				(Option.Medical): 72,
+				(Option.Scuba): 36,
+				(Option.Yoga): 33,
+				(Option.Sports): 25
 			].asImmutable()
 		].asImmutable()
-		assert config["ageRisks"].size() == 1
 		config
 	}
-	
-	// Phase 2 of the game (Slicing with the basic rules)
-	def phase2(){
-		def config = phase1()
-		def changes = [
-			"coverPrices": [
-				(Cover.Extra): 2.4,
-				(Cover.Premier): 4.2
-			].asImmutable(),
-			"countriesRisks": [
-				(Country.ES): 1.0,
-				(Country.BE): 1.1,
-				(Country.FI): 0.8,
-				(Country.FR): 1.0,
-				(Country.EL): 0.9
-			].asImmutable(),
-			"ageRisks": [
-				(0): 0.5,
-				(18): 1.0,
-				(46): 1.2,
-				(66): 1.4,
-				(76): 2.0
-			].asImmutable(),
-		].asImmutable()
-		config = merge(config, changes)
-		config
-	}
-	
-	// phase 3 of the game, with frequent changes of the pricing formula at each step
-	def phase3(int step){
-		def previous = phase2()
-		def config = previous
-	
-		// should apply one change about every 10mn
-		def changes = [
-			["coverPrices": [(Cover.Basic): 1.7].asImmutable()].asImmutable(),
-			["countriesRisks": [(Country.UK): 1.1].asImmutable()].asImmutable(),
-			["countriesRisks": [(Country.CZ): 1.4].asImmutable()].asImmutable(),
-			["optionsPrices": [(Option.Skiing): 28].asImmutable()].asImmutable(),
-			["ageRisks": [(86): 2.2].asImmutable()].asImmutable(),
-			["optionsPrices": [(Option.Medical): 72].asImmutable()].asImmutable(),
-			["countriesRisks": [(Country.IT): 1.2].asImmutable()].asImmutable(),
-			["ageRisks": [(76): 1.8].asImmutable()].asImmutable(),
-			["countriesRisks": [(Country.EL): 1.1].asImmutable()].asImmutable(),
-			["constraint": ["minimum": 19].asImmutable()].asImmutable(),
-			["optionsPrices": [(Option.Sports): 25].asImmutable()].asImmutable(),
-			["optionsPrices": [(Option.Scuba): 36].asImmutable()].asImmutable(),
-			["optionsPrices": [(Option.Yoga): -3].asImmutable()].asImmutable(),
-		].asImmutable().subList(0, step)
-		changes.forEach{change -> config = merge(config, change)}
-		config
-	}
-	
+
 	// -------------- TESTS --------------
 	
 	def testAll(){
@@ -250,39 +226,19 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 	
 	
 	
-	def ageRisk(Double age, Map<Integer, Double> ageRisks){
-		if (age == 0) return ageRisks.get(0)
-		def level = ageRisks.keySet().findAll{it <= age}.max()
-		ageRisks.get(level) as double
+	def ageRisk(TypoPassenger typo){
+		switch (typo){
+			case TypoPassenger.CHILD : return 1.1 as double
+			case TypoPassenger.YOUNG : return 0.9 as double
+			case TypoPassenger.ADULT : return 1.0 as double
+			case TypoPassenger.SENIOR : return 1.5 as double
+			default: return 1.0 as double
+		}
 	}
 	
-	def testAgeRisk(){
-		def ageRisks = [
-			(0): 0.5,
-			(18): 1.0,
-			(46): 1.2,
-			(66): 1.4,
-			(76): 2.0
-		].asImmutable()
-		assert ageRisk(0, ageRisks) == 0.5
-		assert ageRisk(17, ageRisks) == 0.5
-		assert ageRisk(18, ageRisks) == 1.0
-		assert ageRisk(45, ageRisks) == 1.0
-		assert ageRisk(46, ageRisks) == 1.2
-		assert ageRisk(66, ageRisks) == 1.4
-		assert ageRisk(76, ageRisks) == 2.0
-		assert ageRisk(100, ageRisks) == 2.0
-	
-		def flatAgeRisks = [
-			(0): 1.0,
-		].asImmutable()
-		assert ageRisk(0, flatAgeRisks) == 1.0
-		assert ageRisk(100, flatAgeRisks) == 1.0
-	}
-	
-	def sumOfRiskAdjustedAges(int[] travellerAges, Map<Integer, Double> ageRisks){
-		double totalForADay = travellerAges
-				.collect({ age -> ageRisk(age, ageRisks) }) // collect == map
+	def sumOfRiskAdjustedAges(TypoPassenger[] travellers){
+		double totalForADay = travellers
+				.collect({ age -> ageRisk(age) }) // collect == map
 				.inject(0, { sum, price -> sum + price }) as double // inject  == reduce/fold
 		return totalForADay
 	}
@@ -320,12 +276,15 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 	def toTravellers(int[] travellersAge, Country country) {
 		TypoPassenger[] passengers = new TypoPassenger[travellersAge.length];
 		int[] am = getAgeMapping(country)
-		int ageToBeAdult=am[0]
-		int ageToBeSenior=am[1]
+		int ageToBeYoung=am[0]
+		int ageToBeAdult=am[1]
+		int ageToBeSenior=am[2]
 
 		for(int index=0;index<travellersAge.length;index++){
-			if(travellersAge[index]<ageToBeAdult){
+			if(travellersAge[index]<ageToBeYoung){
 				passengers[index]=TypoPassenger.CHILD
+			}else if(travellersAge[index]<ageToBeAdult){
+				passengers[index]=TypoPassenger.YOUNG
 			}else if(travellersAge[index]<ageToBeSenior) {
 				passengers[index]=TypoPassenger.ADULT
 			}else{
@@ -340,18 +299,18 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 		switch (country) {
 		//case Country.FR:
 			case Country.MT:
-				return [18, 60]
+				return [18,27, 60]
 
 //          case Country.IT:
 //          case Country.NL:
 //			case Country.UK:
 			case Country.LU:
-				return [15, 60]
+				return [15,24, 60]
 //            case Country.ES:
 //			case Country.EL:
 			case Country.EE:
 //            case Country.PT:
-				return [12, 65]
+				return [12,18, 65]
 
 //			case Country.CZ:
 			case Country.CY:
@@ -360,9 +319,9 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 				//          case Country.LV:
 				//          case Country.RO:
 				//          case Country.BG:
-				return [15, 55]
+				return [15,21, 55]
 			default:
-				return [18, 65]
+				return [18,25, 65]
 		}
 	}
 
@@ -372,11 +331,17 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 		TravelData travel = toTravelData(data)
 
 		double price = coverPrice(data.cover, config["coverPrices"])
-		double sumOfAges = sumOfRiskAdjustedAges(data.travellerAges, config["ageRisks"])
+		double passengersRisks = sumOfRiskAdjustedAges(travel.travellers)
 		double countryRisk = countryRisk(data.country, config["countriesRisks"])
 
 		double optionPrice = optionPrice(data.options, config["optionsPrices"])
 		int nbDays = travel.nbDays
+
+		//premiere semaine est indivisible
+		if(nbDays<7){
+			nbDays=7
+		}
+
 		if (phase4On) {
 			//au delà de 3 semaines,on ne facture que les semaines pleines
 			if (((int) travel.nbDays / 7) >= 3) {
@@ -384,9 +349,7 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 			}
 		}
 
-		double total = price * countryRisk * sumOfAges * nbDays + optionPrice
-
-
+		double total = price * countryRisk * passengersRisks * nbDays + optionPrice
 
 		if(phase4On){
 			int nbChilds=travel.travellers.findAll { t -> t==TypoPassenger.CHILD }.toList().size()
@@ -445,13 +408,12 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 	
 		Cover cover = randomizator.pickOne(availableCovers, { c -> c.rate() })
 		Country country = randomizator.pickOne(availableCountries, { c -> c.populationInMillions() })
-		LocalDate dpDate = LocalDate.now().plusDays(randomizator.randomInt(10))
-		LocalDate reDate = dpDate.plusDays(randomizator.randomInt(45))
+		LocalDate dpDate = LocalDate.now().plusDays(randomizator.randomInt(100))
+		LocalDate reDate = dpDate.plusDays(randomizator.randomInt(50))
 		int nbTraveller = randomizator.randomInt(4) + 1
 		int[] ages = randomizator.randomPositiveInts(nbTraveller, 95)
 		List<Option> options = availableOptions.findAll { o -> randomizator.randomDouble() < o.rate }.toList()
 		
-		Country originCountry = randomizator.pickOne(Country.values(), { c -> c.populationInMillions() })
 		Data data = new Data(
 				country: country,
 				departureDate: dpDate,
@@ -484,9 +446,9 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 
 	@Override
 	Question nextQuestion(int tick, Randomizator randomizator) {
-		def config = phase3(10)
+		def config = carpaccio()
 		Data data = generateData(randomizator, config)
-		return new 	QuestionInsuranceCrossSelling(data: data,travelData: toTravelData(data))
+		return new 	QuestionInsurance(data: data)
 	}
 
 }
@@ -519,7 +481,7 @@ public class TravelData {
 }
 
 public enum TypoPassenger {
-	CHILD, ADULT, SENIOR
+	CHILD, YOUNG, ADULT, SENIOR
 }
 
 public class QuestionInsuranceCrossSelling extends QuestionSupport implements Question {

@@ -368,6 +368,7 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 
 	def quote(Data data, Map config) {
 
+		def phase4On = false
 		TravelData travel = toTravelData(data)
 
 		double price = coverPrice(data.cover, config["coverPrices"])
@@ -376,21 +377,25 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 
 		double optionPrice = optionPrice(data.options, config["optionsPrices"])
 		int nbDays = travel.nbDays
-
-		//au delà de 3 semaines,on ne facture que les semaines pleines
-		if(((int)travel.nbDays/7)>=3){
-			nbDays=((int)travel.nbDays/7)*7
+		if (phase4On) {
+			//au delà de 3 semaines,on ne facture que les semaines pleines
+			if (((int) travel.nbDays / 7) >= 3) {
+				nbDays = ((int) travel.nbDays / 7) * 7
+			}
 		}
 
 		double total = price * countryRisk * sumOfAges * nbDays + optionPrice
 
-		if(false){
-			int nbChilds=travel.travellers.findAll { t -> TypoPassenger.CHILD }.toList().size()
-			int nbAdults=travel.travellers.findAll { t -> TypoPassenger.ADULT }.toList().size()
-			int nbSeniors=travel.travellers.findAll { t -> TypoPassenger.SENIOR }.toList().size()
+
+
+		if(phase4On){
+			int nbChilds=travel.travellers.findAll { t -> t==TypoPassenger.CHILD }.toList().size()
+			int nbAdults=travel.travellers.findAll { t -> t==TypoPassenger.ADULT }.toList().size()
+			int nbSeniors=travel.travellers.findAll { t -> t==TypoPassenger.SENIOR }.toList().size()
+
 			//réduction pack famille
 			if(nbChilds==2 && nbAdults==2){
-				total-=(total*20/100)
+				//total-=(total*20/100)
 			}
 
 			//seniors qui encadrent des enfants=> risque
@@ -467,6 +472,16 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 		return new QuestionInsurance(data: data)
 	}
 */
+/*
+	@Override
+	Question nextQuestion(int tick, Randomizator randomizator) {
+		def config = phase3(10)
+		Data data = generateData(randomizator, config)
+		return new 	QuestionInsuranceCrossSelling(data: data,travelData: toTravelData(data))
+	}
+
+ */
+
 	@Override
 	Question nextQuestion(int tick, Randomizator randomizator) {
 		def config = phase3(10)

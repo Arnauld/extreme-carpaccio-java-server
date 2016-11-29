@@ -1,7 +1,6 @@
 package fr.arolla.core;
 
 import fr.arolla.util.Sampler;
-import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
@@ -73,7 +72,7 @@ public class InMemoryPlayers implements Players {
 
     @Override
     public void addCash(String username, double amount) {
-        List<Double> history = cashHistories.get(keyOf(username));
+        List<Double> history = Optional.ofNullable(cashHistories.get(keyOf(username))).orElse(new ArrayList<>());
         Double last = history.get(history.size() - 1);
         history.add(last + amount);
         players.get(keyOf(username)).cash(last + amount);

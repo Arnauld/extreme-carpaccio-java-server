@@ -17,6 +17,12 @@ import groovy.transform.ToString
 
 import javax.validation.constraints.NotNull
 import java.time.LocalDate
+
+import static TypoPassenger.ADULT
+import static TypoPassenger.CHILD
+import static TypoPassenger.SENIOR
+import static TypoPassenger.YOUNG
+
 // ----------------------------------------------------------------------------
 //
 // VERSION
@@ -228,10 +234,10 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 	
 	def ageRisk(TypoPassenger typo){
 		switch (typo){
-			case TypoPassenger.CHILD : return 1.1 as double
-			case TypoPassenger.YOUNG : return 0.9 as double
-			case TypoPassenger.ADULT : return 1.0 as double
-			case TypoPassenger.SENIOR : return 1.5 as double
+			case CHILD : return 1.1 as double
+			case YOUNG : return 0.9 as double
+			case ADULT : return 1.0 as double
+			case SENIOR : return 1.5 as double
 			default: return 1.0 as double
 		}
 	}
@@ -282,13 +288,13 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 
 		for(int index=0;index<travellersAge.length;index++){
 			if(travellersAge[index]<ageToBeYoung){
-				passengers[index]=TypoPassenger.CHILD
+				passengers[index]=CHILD
 			}else if(travellersAge[index]<ageToBeAdult){
-				passengers[index]=TypoPassenger.YOUNG
+				passengers[index]=YOUNG
 			}else if(travellersAge[index]<ageToBeSenior) {
-				passengers[index]=TypoPassenger.ADULT
+				passengers[index]=ADULT
 			}else{
-				passengers[index]=TypoPassenger.SENIOR
+				passengers[index]=SENIOR
 			}
 		}
 		passengers
@@ -327,7 +333,7 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 
 	def quote(Data data, Map config) {
 
-		def phase4On = false
+		def phase3On = false
 		TravelData travel = toTravelData(data)
 
 		double price = coverPrice(data.cover, config["coverPrices"])
@@ -342,39 +348,75 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 			nbDays=7
 		}
 
-		if (phase4On) {
+		int nbChilds=travel.travellers.findAll { t -> t==CHILD }.toList().size()
+		int nbAdults=travel.travellers.findAll { t -> t==ADULT }.toList().size()
+		int nbYoungs=travel.travellers.findAll { t -> t==YOUNG }.toList().size()
+		int nbSeniors=travel.travellers.findAll { t -> t==SENIOR }.toList().size()
+
+
+		if (phase3On) {
+			//on ne paye la 2e semaine qu'à partir du 3e jours
+			if(nbDays>7 && nbDays<=10){
+				//nbDays=7
+			}
 			//au delà de 3 semaines,on ne facture que les semaines pleines
 			if (((int) travel.nbDays / 7) >= 3) {
-				nbDays = ((int) travel.nbDays / 7) * 7
+				//nbDays = ((int) travel.nbDays / 7) * 7
+			}
+
+			//Pack Jeune: au delà de 3 jeunes, 1 gratuit
+			if(nbYoungs>3){
+				//passengersRisks-=ageRisk(YOUNG)
 			}
 		}
 
 		double total = price * countryRisk * passengersRisks * nbDays + optionPrice
+		double totalTmp=total
 
-		if(phase4On){
-			int nbChilds=travel.travellers.findAll { t -> t==TypoPassenger.CHILD }.toList().size()
-			int nbAdults=travel.travellers.findAll { t -> t==TypoPassenger.ADULT }.toList().size()
-			int nbSeniors=travel.travellers.findAll { t -> t==TypoPassenger.SENIOR }.toList().size()
+		if(phase3On){
 
 			//réduction pack famille
 			if(nbChilds==2 && nbAdults==2){
-				//total-=(total*20/100)
+				//totalTmp-=(total*20/100)
 			}
 
 			//seniors qui encadrent des enfants=> risque
 			if(nbAdults==0){
-				total+=(total*5/100)
+				//totalTmp+=(total*5/100)
 			}
 			//malus trop de personnes agées
 			if(nbSeniors>(nbAdults+nbChilds)){
-				total+=(total*nbSeniors/100)
+				//totalTmp+=(total*nbSeniors/100)
 			}
 			//pas assez d'adultes encadrants
 			if(nbChilds-nbAdults>0){
-				total+=(total*15/100)
+				//totalTmp+=(total*15/100)
 			}
+			//au delà de 3 mois, on économise 5% par mois au delà
+			if(nbDays%30>3){
+				//totalTmp-=total*((nbDays%30)-3)*5/100
+			}
+
+			//5% pour les couples
+			if(nbAdults==2 && nbYoungs==0 && nbChilds==0 && nbSeniors == 0){
+				//totalTmp-=total*5/100
+			}
+
+			//10% pour les jeunes couples
+			if(nbAdults==0 && nbYoungs==2 && nbChilds==0 && nbSeniors == 0){
+				//totalTmp-=total*10/100
+			}
+			//Pack Jeune++: au delà de 5 jeunes, 10% de promo
+			if(nbYoungs>5){
+				//totalTmp-=total*10/100
+			}
+			//risque voyage solo: malus de 5%
+			if(nbAdults+nbChilds+nbSeniors+nbYoungs==1){
+				//totalTmp+=total*5/100
+			}
+
 		}
-		total
+		totalTmp
 	}
 
 	private TravelData toTravelData(Data data) {
@@ -589,7 +631,7 @@ public class QuestionInsuranceCrossSelling extends QuestionSupport implements Qu
 
 		// Senior or Cover.Premier enjoy luguage transfer and shuttle or valet
 
-		if ((data.cover == Cover.Premier || data.travellers.contains(TypoPassenger.SENIOR))
+		if ((data.cover == Cover.Premier || data.travellers.contains(SENIOR))
 
 				&& offers.any { offer ->
 
@@ -612,7 +654,7 @@ public class QuestionInsuranceCrossSelling extends QuestionSupport implements Qu
 
 		// Travelling with kids, may need a baby sitter or child care
 
-		if (data.travellers.contains(TypoPassenger.CHILD) && offers.any { offer ->
+		if (data.travellers.contains(CHILD) && offers.any { offer ->
 
 			containsAny(offer, [
 

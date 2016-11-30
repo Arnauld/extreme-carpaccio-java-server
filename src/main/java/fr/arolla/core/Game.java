@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 @Service
 public class Game {
     private final Logger log = LoggerFactory.getLogger(Game.class);
+    private final Logger questionlog = LoggerFactory.getLogger(Question.class);
 
     private final GameListener listener;
     private final Players players;
@@ -40,6 +41,8 @@ public class Game {
     public void processIteration(int tick) {
         listener.iterationStarting(tick);
         Question q = questionGenerator.nextQuestion(tick, randomizator);
+
+        questionlog.info("Tick {} -> {}", tick, q);
 
         Observable.from(players.all().collect(Collectors.toList()))
                 .flatMap(p -> dispatch(tick, q, p))

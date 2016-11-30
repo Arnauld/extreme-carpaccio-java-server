@@ -53,6 +53,17 @@
             </encoder>
         </appender>
 
+        <appender name="RXNETTY" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_PATH}/rxnetty.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>30</maxHistory>
+            </rollingPolicy>
+            <encoder>
+                <charset>utf-8</charset>
+                <Pattern>%d %-5level [%25thread] %logger{0}: %msg%n</Pattern>
+            </encoder>
+        </appender>
+
         <appender name="QUESTIONS" class="ch.qos.logback.core.rolling.RollingFileAppender">
             <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
                 <fileNamePattern>${LOG_PATH}/questions.%d{yyyy-MM-dd}.log</fileNamePattern>
@@ -78,6 +89,11 @@
         <appender name="ASYNC_BASE" class="ch.qos.logback.classic.AsyncAppender">
             <queueSize>512</queueSize>
             <appender-ref ref="BASE"/>
+        </appender>
+
+        <appender name="ASYNC_RXNETTY" class="ch.qos.logback.classic.AsyncAppender">
+            <queueSize>512</queueSize>
+            <appender-ref ref="RXNETTY"/>
         </appender>
 
         <appender name="ASYNC_QUESTIONS" class="ch.qos.logback.classic.AsyncAppender">
@@ -112,7 +128,15 @@
         </logger>
 
         <logger name="fr.arolla.infra.RxNettyDispatcher" level="DEBUG">
+            <appender-ref ref="ASYNC_RXNETTY" />
+        </logger>
+
+        <logger name="fr.arolla.core.question" level="INFO">
             <appender-ref ref="ASYNC_QUESTIONS" />
+        </logger>
+
+        <logger name="fr.arolla.core.Feedback" level="INFO">
+            <appender-ref ref="ASYNC_FEEDBACKS" />
         </logger>
 
         <root level="WARN">

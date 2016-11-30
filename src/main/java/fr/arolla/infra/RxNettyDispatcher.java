@@ -37,6 +37,7 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
     public static final String FEEDBACK_PATH = "/feedback";
 
     private final Logger log = LoggerFactory.getLogger(RxNettyDispatcher.class);
+    private final Logger feedbacklog = LoggerFactory.getLogger(Feedback.class);
 
     private final ObjectMapper objectMapper;
 
@@ -114,7 +115,7 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
         ByteBuf payload = toBytes(feedback);
         Player player = feedback.getPlayer();
         log.info("Notifying answer to player {} at tick {}", player.username(), tick);
-        log.debug("sending feedback {} to player {} at tick {}", feedback, player.username(), tick);
+        feedbacklog.info("sending feedback {} to player {} at tick {}", feedback, player.username(), tick);
 
         URI uri;
         try {

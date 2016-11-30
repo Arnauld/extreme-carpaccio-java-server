@@ -75,7 +75,7 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
     private Func1<HttpClientResponse<ByteBuf>, Observable<? extends ResponseDto>> extractResponse(int tick, Player player) {
         return clientResponse -> {
             HttpResponseStatus status = clientResponse.getStatus();
-            log.info("Tick {} - response received from {}: {}", tick, player.username(), status);
+            feedbacklog.info("Tick {} - response received from {}: {}", tick, player.username(), status);
 
             if (status.equals(HttpResponseStatus.OK)) {
                 return toResponseObservable(tick, player, clientResponse);

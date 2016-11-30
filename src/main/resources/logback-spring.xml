@@ -131,11 +131,14 @@
             <appender-ref ref="ASYNC_RXNETTY" />
         </logger>
 
-        <logger name="fr.arolla.core.Question" level="INFO">
+        <logger name="fr.arolla.core.Question" level="DEBUG">
+            <appender-ref ref="ASYNC_QUESTIONS" />
+        </logger>
+        <logger name="fr.arolla.core.question" level="DEBUG">
             <appender-ref ref="ASYNC_QUESTIONS" />
         </logger>
 
-        <logger name="fr.arolla.core.Feedback" level="INFO">
+        <logger name="fr.arolla.core.Feedback" level="DEBUG">
             <appender-ref ref="ASYNC_FEEDBACKS" />
         </logger>
 

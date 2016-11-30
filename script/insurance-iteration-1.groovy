@@ -33,7 +33,7 @@ version = "1.0.0"
 //
 // ----------------------------------------------------------------------------
 
-weight = 0.0 as double
+weight = 1.0 as double
 
 // ----------------------------------------------------------------------------
 //
@@ -117,7 +117,7 @@ public class QuestionInsuranceGenerator1 implements QuestionGenerator {
         Data data4 = requestData(Country.FI, dpDate, dpDate.plusDays(1), randomizator.randomPositiveInts(2, 95), [Option.Skiing], Cover.Basic)
 
 
-        Data data = randomizator.pickOne([data1,data2,data3])
+        Data data = randomizator.pickOne([data1,data2,data3,data4])
 //DECOMMENTER  data = randomizator.pickOne([data1,data2,data3,data4])
 
         double quote = quote(data, config)
@@ -148,6 +148,7 @@ public class QuestionInsuranceGenerator1 implements QuestionGenerator {
 
 generator = new QuestionInsuranceGenerator1()
 
+@ToString(includeNames=true)
 public class QuestionInsurance extends QuestionSupport implements Question {
 
     Data data

@@ -10,6 +10,7 @@ import fr.arolla.core.Question
 import fr.arolla.core.QuestionGenerator
 import fr.arolla.core.question.Country
 import fr.arolla.util.Randomizator
+import groovy.transform.ToString
 
 import javax.validation.constraints.NotNull
 import java.time.LocalDate
@@ -124,6 +125,7 @@ public class InvalidQuestionInsuranceGenerator implements QuestionGenerator {
 
 generator = new InvalidQuestionInsuranceGenerator()
 
+@ToString(includeNames=true)
 public class Data {
     String country;
     @JsonFormat(pattern = "yyyy-MM-dd")
@@ -146,6 +148,7 @@ public class InvalidTravellersAgesData {
     String cover;
 }
 
+@ToString(includeNames=true)
 public class InvalidTQuestionInsurance implements Question {
 
     final Object data;

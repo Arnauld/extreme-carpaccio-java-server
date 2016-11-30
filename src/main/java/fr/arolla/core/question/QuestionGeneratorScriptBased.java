@@ -63,16 +63,12 @@ public class QuestionGeneratorScriptBased implements QuestionGenerator, HasWeigh
         if (!scriptFile.exists())
             throw new IllegalStateException("Script file does not exists '" + scriptFile.getAbsolutePath() + "'");
 
-        if (generator == null || fileWatchr.hasChanged()) {
+        boolean hasChanged = fileWatchr.hasChanged();
+        LOG.debug("has file {} changed ? {}", scriptFile.getName(), hasChanged);
 
-            LOG.info("\n" +
-                    "******************\n" +
-                    "******************\n" +
-                    "******************\n" +
-                    "******************\n" +
-                    "******************\n" +
-                    "******************\n" +
-                    "Reloading configuration from {}", scriptFile.getAbsolutePath());
+        if (generator == null || hasChanged) {
+
+            LOG.info("Reloading configuration from {}", scriptFile.getAbsolutePath());
 
             ScriptEngineManager manager = new ScriptEngineManager();
             ScriptEngine engine = manager.getEngineByName("groovy");

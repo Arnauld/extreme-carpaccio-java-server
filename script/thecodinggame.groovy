@@ -39,7 +39,7 @@ version = "1.0.0"
 //
 // ----------------------------------------------------------------------------
 
-weight = 0.5 as double
+weight = 0.0 as double
 
 // ----------------------------------------------------------------------------
 //
@@ -81,6 +81,7 @@ public enum Option {
 	}
 }
 
+@ToString(includeNames=true)
 public class QuestionInsurance extends QuestionSupport implements Question {
 
 	Data data

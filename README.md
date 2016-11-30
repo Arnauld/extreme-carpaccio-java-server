@@ -33,9 +33,20 @@ Player registration -----> |                         |                          
       Player 2 <---------  |  RxNetty Clients        |        v
        ...                 |    / Observable         | {RxNettyDispatcher.java}
       Player n <---------  |                         |
+
                            +-------------------------+
 
 ```
+
+## Usage
+
+* thecodinggame.groovy, invalid-insurance.groovy, insurance-iteration-1.groovy, technical-invalid-requests.groovy
+
+STEP 1 :
+with each weight at 0.0 except insurance-iteration-1 at 1.0
+
+line 120 --> change data (uncomment)
+
 
 ## Notes
 

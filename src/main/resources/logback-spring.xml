@@ -131,7 +131,7 @@
             <appender-ref ref="ASYNC_RXNETTY" />
         </logger>
 
-        <logger name="fr.arolla.core.question" level="INFO">
+        <logger name="fr.arolla.core.Question" level="INFO">
             <appender-ref ref="ASYNC_QUESTIONS" />
         </logger>
 

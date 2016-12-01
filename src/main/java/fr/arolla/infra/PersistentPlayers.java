@@ -162,7 +162,7 @@ public class PersistentPlayers implements Players {
                 .collect(Collectors.joining(DATA_SEPARATOR));
         try {
             Files.write(createValidPath(fileName), data.getBytes());
-            log.info("{} saved", fileName);
+            log.trace("{} saved", fileName);
         } catch (IOException e) {
             log.error("ERROR while trying to persist {}", fileName, e);
         }

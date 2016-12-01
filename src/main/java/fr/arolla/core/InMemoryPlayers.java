@@ -91,6 +91,7 @@ public class InMemoryPlayers implements Players {
     @Override
     public void remove(Player player) {
         players.remove(player.username().toLowerCase());
+        cashHistories.remove(keyOf(player));
     }
 
     @Override

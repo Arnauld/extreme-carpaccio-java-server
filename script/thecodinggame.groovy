@@ -207,32 +207,6 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 		testStandardQuote()
 	}
 	
-	def testPhases(){
-		def config = phase1();
-		assert config["coverPrices"].size() == 1
-		assert config["countriesRisks"].size() == 3
-	
-		config = phase2();
-		assert config["ageRisks"].size() == 5
-		assert config["coverPrices"].size() == 3
-	
-		config = phase3(0);
-		assert config["ageRisks"].size() == 5
-		assert config["coverPrices"].size() == 3
-	
-		config = phase3(1);
-		assert config["countriesRisks"].size() == 5
-	
-		config = phase3(2);
-		assert config["countriesRisks"].size() == 6
-		config = phase3(3);
-		assert config["countriesRisks"].size() == 7
-		config = phase3(7);
-		assert config["countriesRisks"].size() == 8
-	}
-	
-	
-	
 	def ageRisk(TypoPassenger typo){
 		switch (typo){
 			case CHILD : return 1.1 as double
@@ -469,23 +443,6 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 		data.quote = quote
 		data
 	}
-/*
-	@Override
-	Question nextQuestion(int tick, Randomizator randomizator) {
-		def config = phase1() // CHANGE HERE THE PHASE & STEP OF THE GAME
-		Data data = generateData(randomizator, config)
-		return new QuestionInsurance(data: data)
-	}
-*/
-/*
-	@Override
-	Question nextQuestion(int tick, Randomizator randomizator) {
-		def config = phase3(10)
-		Data data = generateData(randomizator, config)
-		return new 	QuestionInsuranceCrossSelling(data: data,travelData: toTravelData(data))
-	}
-
- */
 
 	@Override
 	Question nextQuestion(int tick, Randomizator randomizator) {
@@ -493,6 +450,14 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 		Data data = generateData(randomizator, config)
 		return new 	QuestionInsurance(data: data)
 	}
+
+	/* REPLACE FOR IT5
+	@Override
+	Question nextQuestion(int tick, Randomizator randomizator) {
+		def config = carpaccio()
+		Data data = generateData(randomizator, config)
+		return new     QuestionInsuranceCrossSelling(data: data,travelData: toTravelData(data))
+	}*/
 
 }
 

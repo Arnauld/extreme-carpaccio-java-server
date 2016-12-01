@@ -46,21 +46,23 @@ STEP 1 :
 with each weight at 0.0 except insurance-iteration-1 at 1.0
 
 line 120 --> change data (uncomment)
+RULES = cover (basic 1.8) * nb travellers * duration days (return date - departure date)
 
+STEP 2 : weight at 0.0 for all except thecodinggame at 1.0
 
-## Notes
+goal : let the team slices
+RULES = cover * sum risk travellers * min (7, duration days) * country + options
 
-* [x] Dashboard add code review ranking: Web Page; - CANCELED
-* [ ] No random on ReductionMode; keep Standard on start, then eventually change it afterwards
-* [x] Feedback invocation / Question#accept => Question#diagnose to send a relevant feedback message - Y
-* [x] API Events - F.
+STEP 3 : in thecodinggame.quote(), set phase3On to True, then play with the multiple if
 
+RULES = ANNOUNCE changes, and uncomment/add if cases
+BONUS : start to send invalid quotes, by modifying the weight of invalid-insurance and codingame
 
+STEP 4 :
 
-* [ ] Bad requests: Generation/Activation 
-* [x] Configure logs: multiple log file: game/player/...
-* [ ] Persist data
-* [ ] 
+STEP 5 : replace the nextQuestion with the commented one REPLACE FOR IT5
+
+RULES : find offers to send instead of quote, offers format is an array like {"offers":["off1","off2"]}
 
 ## Protocol
 

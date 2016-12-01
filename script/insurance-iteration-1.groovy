@@ -166,7 +166,7 @@ public class QuestionInsurance extends QuestionSupport implements Question {
             return Question.ResponseValidation
                     .of(valueOpt
                     .map({ Number actual ->
-                Math.abs(expected - actual.doubleValue()) < 1e-3
+                Math.abs(expected - actual.doubleValue()) < 1e-2
             })
                     .orElse(false), { -> String.format("%.2f", expected) })
 

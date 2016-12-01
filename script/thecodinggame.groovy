@@ -99,7 +99,7 @@ public class QuestionInsurance extends QuestionSupport implements Question {
 			return Question.ResponseValidation
 					.of(valueOpt
 					.map({ Number actual ->
-						Math.abs(expected - actual.doubleValue()) < 1e-3
+						Math.abs(expected - actual.doubleValue()) < 1e-2
 					})
 					.orElse(false), { -> String.format("%.2f", expected) })
 
@@ -279,28 +279,28 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 	private getAgeMapping(Country country) {
 		switch (country) {
 		//case Country.FR:
-			case Country.MT:
-				return [18,27, 60]
+//			case Country.MT:
+//				return [18,27, 60]
 
 //          case Country.IT:
 //          case Country.NL:
 //			case Country.UK:
-			case Country.LU:
-				return [15,24, 60]
+//			case Country.LU:
+//				return [15,24, 60]
 //            case Country.ES:
 //			case Country.EL:
-			case Country.EE:
+//			case Country.EE:
 //            case Country.PT:
-				return [12,18, 65]
+//				return [12,18, 65]
 
 //			case Country.CZ:
-			case Country.CY:
+//			case Country.CY:
 				//          case Country.LT:
 				//          case Country.SI:
 				//          case Country.LV:
 				//          case Country.RO:
 				//          case Country.BG:
-				return [15,21, 55]
+//				return [15,21, 55]
 			default:
 				return [18,25, 65]
 		}

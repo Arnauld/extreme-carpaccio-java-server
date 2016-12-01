@@ -58,7 +58,7 @@ STEP 3 : in thecodinggame.quote(), set phase3On to True, then play with the mult
 RULES = ANNOUNCE changes, and uncomment/add if cases
 BONUS : start to send invalid quotes, by modifying the weight of invalid-insurance and codingame
 
-STEP 4 :
+STEP 4 : TDD - change frequency (less for more TDD), activate roman
 
 STEP 5 : replace the nextQuestion with the commented one REPLACE FOR IT5
 

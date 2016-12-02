@@ -198,15 +198,6 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 		config
 	}
 
-	// -------------- TESTS --------------
-	
-	def testAll(){
-		testAgeRisk()
-		testSumOfRiskAdjustedAges()
-		testPhases()
-		testStandardQuote()
-	}
-	
 	def ageRisk(TypoPassenger typo){
 		switch (typo){
 			case CHILD : return 1.1 as double
@@ -223,22 +214,7 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 				.inject(0, { sum, price -> sum + price }) as double // inject  == reduce/fold
 		return totalForADay
 	}
-	
-	def testSumOfRiskAdjustedAges(){
-		def ageRisks = [
-			(0): 0.5,
-			(18): 1.0,
-			(46): 1.2,
-			(66): 1.4,
-			(76): 2.0
-		].asImmutable()
-		assert sumOfRiskAdjustedAges([] as int[], ageRisks) == 0
-		assert sumOfRiskAdjustedAges([18] as int[], ageRisks) == 1.0 // solo
-		assert sumOfRiskAdjustedAges([24, 27] as int[], ageRisks) == 2.0 // couple
-		assert sumOfRiskAdjustedAges([24, 27, 3] as int[], ageRisks) == 2.5 // family with 1 kid
-		assert sumOfRiskAdjustedAges([24, 27, 3, 7] as int[], ageRisks) == 3.0 // family with 2 kids
-		assert sumOfRiskAdjustedAges([66, 68] as int[], ageRisks) == 2.8 // senior couple
-	}
+
 	
 	def coverPrice(Cover cover, Map<Cover, Double> coverPrices){
 		coverPrices[cover]
@@ -402,18 +378,6 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 		travel
 	}
 
-	def testStandardQuote(){
-		def config = phase2();
-		println config
-	
-		1.upto(20, {
-			def data = generateData(new Randomizator(), config)
-			println data
-			def quote = quote(data, config)
-			println quote
-		})
-	}
-	
 	def Data generateData(Randomizator randomizator, Map config) {
 		def availableCovers = config["coverPrices"].keySet() as Cover[]
 		def availableCountries = config["countriesRisks"].keySet() as Country[]
@@ -422,7 +386,7 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 		Cover cover = randomizator.pickOne(availableCovers, { c -> c.rate() })
 		Country country = randomizator.pickOne(availableCountries, { c -> c.populationInMillions() })
 		LocalDate dpDate = LocalDate.now().plusDays(randomizator.randomInt(100))
-		LocalDate reDate = dpDate.plusDays(randomizator.randomInt(50))
+		LocalDate reDate = dpDate.plusDays(randomizator.randomInt(90))
 		int nbTraveller = randomizator.randomInt(4) + 1
 		int[] ages = randomizator.randomPositiveInts(nbTraveller, 95)
 		List<Option> options = availableOptions.findAll { o -> randomizator.randomDouble() < o.rate }.toList()
@@ -454,6 +418,37 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 		Data data = generateData(randomizator, config)
 		return new     QuestionInsuranceCrossSelling(data: data,travelData: toTravelData(data))
 	}*/
+
+    // -------------- TESTS --------------
+
+
+    def testSumOfRiskAdjustedAges(){
+        def ageRisks = [
+                (0): 0.5,
+                (18): 1.0,
+                (46): 1.2,
+                (66): 1.4,
+                (76): 2.0
+        ].asImmutable()
+        assert sumOfRiskAdjustedAges([] as int[], ageRisks) == 0
+        assert sumOfRiskAdjustedAges([18] as int[], ageRisks) == 1.0 // solo
+        assert sumOfRiskAdjustedAges([24, 27] as int[], ageRisks) == 2.0 // couple
+        assert sumOfRiskAdjustedAges([24, 27, 3] as int[], ageRisks) == 2.5 // family with 1 kid
+        assert sumOfRiskAdjustedAges([24, 27, 3, 7] as int[], ageRisks) == 3.0 // family with 2 kids
+        assert sumOfRiskAdjustedAges([66, 68] as int[], ageRisks) == 2.8 // senior couple
+    }
+
+    def testStandardQuote(){
+        def config = phase2();
+        println config
+
+        1.upto(20, {
+            def data = generateData(new Randomizator(), config)
+            println data
+            def quote = quote(data, config)
+            println quote
+        })
+    }
 
 }
 

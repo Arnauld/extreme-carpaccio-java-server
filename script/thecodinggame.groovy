@@ -355,21 +355,17 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 				//totalTmp-=(total*20/100)
 			}
 
-			//seniors qui encadrent des enfants=> risque
-			if(nbAdults==0){
-				//totalTmp+=(total*5/100)
-			}
 			//malus trop de personnes agées
-			if(nbSeniors>(nbAdults+nbChilds)){
+			if(nbSeniors>(nbAdults+nbChilds+nbYoungs)){
 				//totalTmp+=(total*nbSeniors/100)
 			}
 			//pas assez d'adultes encadrants
-			if(nbChilds-nbAdults>0){
+			if(nbChilds>nbAdults){
 				//totalTmp+=(total*15/100)
 			}
 			//au delà de 3 mois, on économise 5% par mois au delà
-			if(nbDays%30>3){
-				//totalTmp-=total*((nbDays%30)-3)*5/100
+			if(nbDays/30>3){
+				//totalTmp-=total*((nbDays/30)-3)*5/100
 			}
 
 			//5% pour les couples

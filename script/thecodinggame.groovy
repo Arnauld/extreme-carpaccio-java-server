@@ -191,7 +191,7 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 				(Option.Skiing): 24,
 				(Option.Medical): 72,
 				(Option.Scuba): 36,
-				(Option.Yoga): 33,
+				(Option.Yoga): -3,
 				(Option.Sports): 25
 			].asImmutable()
 		].asImmutable()

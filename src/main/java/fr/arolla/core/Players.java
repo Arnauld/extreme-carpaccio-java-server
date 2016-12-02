@@ -26,4 +26,6 @@ public interface Players {
     void resetScore(String username);
 
     void saveState();
+
+    void resetAllScore();
 }

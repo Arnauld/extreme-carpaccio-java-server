@@ -36,4 +36,14 @@ public class AdminController {
         return "score reset for player " + player;
     }
 
+    @RequestMapping(value = "/resetall/{passwordPath}", method = RequestMethod.GET)
+    public String resetPlayerScore(@PathVariable String passwordPath) {
+        log.debug("reset score requested for ALL PLAYERS with password {}", passwordPath);
+        if (!password.equals(passwordPath)) {
+            return "ERROR - ALL players score not reset";
+        }
+        players.resetAllScore();
+        return "score reset for ALL players ";
+    }
+
 }

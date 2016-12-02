@@ -109,6 +109,12 @@ public class PersistentPlayers implements Players {
         persist(CASH_FILE, inMemoryPlayers.getCashHistories().entrySet().stream(), this::serialize);
     }
 
+    @Override
+    public void resetAllScore() {
+        inMemoryPlayers.resetAllScore();
+        saveState();
+    }
+
     private void loadState() {
         load(PLAYERS_FILE, this::unserializePlayers);
         load(CASH_FILE, this::unserializeCash);

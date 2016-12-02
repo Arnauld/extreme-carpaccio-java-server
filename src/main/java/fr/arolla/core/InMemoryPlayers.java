@@ -27,7 +27,7 @@ public class InMemoryPlayers implements Players {
 
     @PostConstruct
     public void removeMe() {
-        add(new Player("batman", "pwd", "http://localhost:4567"));
+        add(new Player("batman", "pwd", "http://localhost:8999"));
         add(new Player("superman", "pwd", "http://localhost:4567"));
         add(new Player("robin", "pwd", "http://localhost:4567"));
         add(new Player("xmen", "pwd", "http://localhost:4567"));
@@ -115,6 +115,12 @@ public class InMemoryPlayers implements Players {
     @Override
     public void saveState() {
 
+    }
+
+    @Override
+    public void resetAllScore() {
+        cashHistories.clear();
+        all().forEach(p -> resetScore(p.username()));
     }
 
     public Map<String, List<Double>> getCashHistories() {

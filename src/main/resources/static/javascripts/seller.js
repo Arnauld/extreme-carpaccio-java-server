@@ -97,27 +97,29 @@ var SellerView = React.createClass({
 		chartData['labels'] = _.takeRight(labels, 10);
 		return chartData;
 	},
-	componentDidMount: function() {
-		var ctx = document.getElementById("salesChart").getContext("2d");
-		var chart = new Chart(ctx);
-		this.setState({chart: chart});
-	},
 	componentWillReceiveProps: function() {
 		var history = this.formatChartData(this.props.salesHistory);
 		this.setState({salesHistory: history});
 	},
-	refreshChart: function() {
-		if(this.state.chart && this.state.salesHistory) {
-			var chart = this.state.chart;
+	componentDidUpdate: function() {
+
+		if(typeof this.chart !== 'undefined'){
+			this.chart.destroy();
+		}
+
+		if(this.state.salesHistory) {
 			var noAnimation = {
 				bezierCurve: false,
 				animation: false
 			};
-			chart.Line(this.state.salesHistory, noAnimation);
+
+			var ctx = document.getElementById("salesChart").getContext("2d");
+			this.chart = new Chart(ctx);
+			this.chart.Line(this.state.salesHistory, noAnimation);
 		}
 	},
 	render: function(){
-		this.refreshChart();
+//		this.refreshChart();
 		var self = this;
 		var sellerNodes = this.props.data.map(function(seller) {
 			var sellerColor = self.string2Color(seller.name);

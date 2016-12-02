@@ -53,7 +53,7 @@ public class PersistentPlayers implements Players {
 
     @Override
     public Stream<Player> all() {
-        if (!loaded && inMemoryPlayers.getPlayers().isEmpty()) {
+        if (!loaded && inMemoryPlayers.isPlayersEmpty()) {
             loadState();
         }
         return inMemoryPlayers.all();
@@ -122,7 +122,7 @@ public class PersistentPlayers implements Players {
                     map(Double::valueOf).
                     collect(Collectors.toList());
             String playerName = fields[0];
-            inMemoryPlayers.getCashHistories().put(playerName, cashHistory);
+            inMemoryPlayers.getCashHistories().put(InMemoryPlayers.keyOf(playerName), cashHistory);
         }
     }
 
@@ -137,7 +137,7 @@ public class PersistentPlayers implements Players {
             Player p = new Player(playerName, password, url);
             p.setOnline(online);
             p.cash(cash);
-            inMemoryPlayers.getPlayers().put(playerName, p);
+            inMemoryPlayers.update(p);
         }
     }
 

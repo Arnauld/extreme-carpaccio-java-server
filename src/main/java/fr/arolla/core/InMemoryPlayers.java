@@ -17,7 +17,7 @@ public class InMemoryPlayers implements Players {
     private Map<String, Player> players = new ConcurrentHashMap<>();
     private Map<String, List<Double>> cashHistories = new ConcurrentHashMap<>();
 
-    private static String keyOf(String name) {
+    public static String keyOf(String name) {
         return name.toLowerCase();
     }
 
@@ -111,7 +111,7 @@ public class InMemoryPlayers implements Players {
         return cashHistories;
     }
 
-    public Map<String, Player> getPlayers() {
-        return players;
+    public boolean isPlayersEmpty() {
+        return players.isEmpty();
     }
 }

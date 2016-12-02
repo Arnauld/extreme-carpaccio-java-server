@@ -57,13 +57,37 @@ var SellerView = React.createClass({
 			hash = str.charCodeAt(i) + ((hash << 5) - hash);
 		}
 
-		var color = "#";
+        var hsvToRgb = function (h, s, v) {
+         var r, g, b;
 
-		for (var j = 0; j < 3; j++) {
-			color += ("00" + ((hash >> j * 8) & 0xFF).toString(16)).slice(-2);
-		}
+         var i = Math.floor(h * 6);
+         var f = h * 6 - i;
+         var p = v * (1 - s);
+         var q = v * (1 - f * s);
+         var t = v * (1 - (1 - f) * s);
 
-		return color;
+         switch (i % 6) {
+           case 0: r = v, g = t, b = p; break;
+           case 1: r = q, g = v, b = p; break;
+           case 2: r = p, g = v, b = t; break;
+           case 3: r = p, g = q, b = v; break;
+           case 4: r = t, g = p, b = v; break;
+           case 5: r = v, g = p, b = q; break;
+         }
+
+         return [Math.round(r * 255),Math.round(g * 255),Math.round(b * 255)];
+        }
+
+        var RGBToHex = function(r,g,b){
+            var bin = r << 16 | g << 8 | b;
+            return (function(h){
+                return new Array(7-h.length).join("0")+h
+            })(bin.toString(16).toUpperCase())
+        }
+
+		var h = 0.2+(0.618033988749895 * hash) % 1;
+		var rgb = hsvToRgb(h,0.6,0.99);
+		return "#"+RGBToHex(rgb[0],rgb[1],rgb[2]);
 	},
 	formatChartData: function(data) {
 		var chartData = {};
@@ -110,12 +134,13 @@ var SellerView = React.createClass({
 		if(this.state.salesHistory) {
 			var noAnimation = {
 				bezierCurve: false,
-				animation: false
+				animation: false,
+				tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= datasetLabel %><%= value %>",
+				multiTooltipTemplate: "<%= datasetLabel %> - cash : <%= value %>"
 			};
 
 			var ctx = document.getElementById("salesChart").getContext("2d");
-			this.chart = new Chart(ctx);
-			this.chart.Line(this.state.salesHistory, noAnimation);
+			this.chart = new Chart(ctx).Line(this.state.salesHistory, noAnimation);
 		}
 	},
 	render: function(){

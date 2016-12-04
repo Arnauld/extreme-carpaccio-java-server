@@ -36,7 +36,7 @@ public class LocalDatesTest {
 
     @Test
     public void should_count_days_between_dates_when_more_than_month(){
-        LocalDate startDate = LocalDate.now();
+        LocalDate startDate = LocalDate.of(2016,11,10);
         LocalDate endDate=startDate.plusMonths(2).plusDays(5);
         assertThat(LocalDates.nbDaysBefore(startDate, endDate)).isEqualTo(66);
     }

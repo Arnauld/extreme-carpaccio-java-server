@@ -45,18 +45,22 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
     public Observable<QuestionOfPlayer> dispatchQuestion(int tick, Question question, Player player) {
         ByteBuf payload = toBytes(question);
 
-        log.info("Tick {} - Invoking {} on {}", tick, player.username(), player.url());
+        String playerUrl = player.url();
+        if (playerUrl.endsWith("/")) {
+            playerUrl = playerUrl.substring(0, playerUrl.length() - 1);
+        }
+        log.info("Tick {} - Invoking {} on {}", tick, player.username(), playerUrl);
         QuestionOfPlayer qop = new QuestionOfPlayer(question, player);
 
         URI uri;
         try {
-            uri = new URI(player.url());
+            uri = new URI(playerUrl);
         } catch (URISyntaxException e) {
             log.warn("Fail to send question to player {}; url is invalid", player.username(), e);
             return Observable.just(qop.withStatus(QuestionOfPlayer.Status.Error));
         }
 
-        HttpClientRequest<ByteBuf, ByteBuf> httpClientRequest = createHttpPostRequest(uri, QUOTE_PATH);
+        HttpClientRequest<ByteBuf, ByteBuf> httpClientRequest = createHttpPostRequest(player.username(), uri, QUOTE_PATH);
 
         return httpClientRequest
                 .writeContentAndFlushOnEach(Observable.just(payload))
@@ -111,15 +115,19 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
         log.info("Notifying answer to player {} at tick {}", player.username(), tick);
         feedbacklog.info("sending feedback {} to player {} at tick {}", feedback, player.username(), tick);
 
+        String playerUrl = player.url();
+        if (playerUrl.endsWith("/")) {
+            playerUrl = playerUrl.substring(0, playerUrl.length() - 1);
+        }
         URI uri;
         try {
-            uri = new URI(player.url());
+            uri = new URI(playerUrl);
         } catch (URISyntaxException e) {
             log.warn("Fail to notify player {}; url is invalid", player.username(), e);
             return;
         }
 
-        HttpClientRequest<ByteBuf, ByteBuf> httpClientRequest = createHttpPostRequest(uri, FEEDBACK_PATH);
+        HttpClientRequest<ByteBuf, ByteBuf> httpClientRequest = createHttpPostRequest(player.username(), uri, FEEDBACK_PATH);
         httpClientRequest
                 .writeContentAndFlushOnEach(Observable.just(payload))
                 .doOnError(
@@ -129,19 +137,16 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
                 .subscribe();
     }
 
-    private HttpClientRequest<ByteBuf, ByteBuf> createHttpPostRequest(URI uri, String uripath) {
-        String path = uri.getPath();
-        if (path.endsWith("/")) {
-            path = path.substring(0, path.length() - 1);
-        }
+    private HttpClientRequest<ByteBuf, ByteBuf> createHttpPostRequest(String playerName, URI uri, String uripath) {
+        String host = uri.getHost();
         int port = uri.getPort();
         if (port == -1) {
             port = 80;
         }
-
-        return HttpClient.newClient(uri.getHost(), port)
+        log.debug("contacting player {} on {} {} {}", playerName, host, port, uripath);
+        return HttpClient.newClient(host, port)
                 .followRedirects(3)
-                .createPost(path + uripath)
+                .createPost(uripath)
                 .addHeader(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON)
                 .addHeader(HttpHeaderNames.ACCEPT, HttpHeaderValues.APPLICATION_JSON);
     }

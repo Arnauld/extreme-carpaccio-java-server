@@ -3,12 +3,7 @@ package fr.arolla.infra;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.arolla.core.Feedback;
-import fr.arolla.core.FeedbackSender;
-import fr.arolla.core.Player;
-import fr.arolla.core.Question;
-import fr.arolla.core.QuestionDispatcher;
-import fr.arolla.core.QuestionOfPlayer;
+import fr.arolla.core.*;
 import fr.arolla.core.question.ResponseSupport;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -16,6 +11,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.netty.protocol.http.client.HttpClient;
+import io.reactivex.netty.protocol.http.client.HttpClientRequest;
 import io.reactivex.netty.protocol.http.client.HttpClientResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,11 +56,9 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
             return Observable.just(qop.withStatus(QuestionOfPlayer.Status.Error));
         }
 
-        return HttpClient.newClient(uri.getHost(), uri.getPort())
-                .followRedirects(3)
-                .createPost(uri.getPath() + QUOTE_PATH)
-                .addHeader(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON)
-                .addHeader(HttpHeaderNames.ACCEPT, HttpHeaderValues.APPLICATION_JSON)
+        HttpClientRequest<ByteBuf, ByteBuf> httpClientRequest = createHttpPostRequest(uri, QUOTE_PATH);
+
+        return httpClientRequest
                 .writeContentAndFlushOnEach(Observable.just(payload))
                 .flatMap(extractResponse(tick, player))
                 .onErrorReturn(toError(tick, player))
@@ -81,7 +75,7 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
                 return toResponseObservable(tick, player, clientResponse);
             }
             if (status.equals(HttpResponseStatus.NO_CONTENT)) {
-               return Observable.just(ResponseDto.skip());
+                return Observable.just(ResponseDto.skip());
             }
             if (status.equals(HttpResponseStatus.BAD_REQUEST)) {
                 return Observable.just(ResponseDto.rejected());
@@ -101,7 +95,7 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
 
     private Func1<Throwable, ResponseDto> toError(int tick, Player player) {
         return err -> {
-            if(err instanceof ConnectException) {
+            if (err instanceof ConnectException) {
                 log.warn("Tick {} - Fail to connect to {}: {}", tick, player.username(), err.getMessage());
                 return ResponseDto.offline();
             }
@@ -125,17 +119,31 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
             return;
         }
 
-        HttpClient.newClient(uri.getHost(), uri.getPort())
-                .followRedirects(3)
-                .createPost(uri.getPath() + FEEDBACK_PATH)
-                .addHeader(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON)
-                .addHeader(HttpHeaderNames.ACCEPT, HttpHeaderValues.APPLICATION_JSON)
+        HttpClientRequest<ByteBuf, ByteBuf> httpClientRequest = createHttpPostRequest(uri, FEEDBACK_PATH);
+        httpClientRequest
                 .writeContentAndFlushOnEach(Observable.just(payload))
                 .doOnError(
                         err -> log.error("Tick {} - error while sending feedback for {}", tick, player.username(), err)
                 )
-                .timeout(10L, TimeUnit.SECONDS)
+                .timeout(1L, TimeUnit.SECONDS)
                 .subscribe();
+    }
+
+    private HttpClientRequest<ByteBuf, ByteBuf> createHttpPostRequest(URI uri, String uripath) {
+        String path = uri.getPath();
+        if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+        int port = uri.getPort();
+        if (port == -1) {
+            port = 80;
+        }
+
+        return HttpClient.newClient(uri.getHost(), port)
+                .followRedirects(3)
+                .createPost(path + uripath)
+                .addHeader(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON)
+                .addHeader(HttpHeaderNames.ACCEPT, HttpHeaderValues.APPLICATION_JSON);
     }
 
     private QuestionOfPlayer consolidateResponse(QuestionOfPlayer qop, ResponseDto response) {

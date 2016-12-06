@@ -36,7 +36,7 @@ version = "1.0.0"
 //
 // ----------------------------------------------------------------------------
 
-weight = 0.0 as double
+weight = 1.0 as double
 
 // ----------------------------------------------------------------------------
 //
@@ -110,18 +110,19 @@ public class QuestionInsurance extends QuestionSupport implements Question {
 
     @Override
     double lossOfflinePenalty() {
-        return -50d
+        return -25d
     }
 
     @Override
     double lossPenalty() {
-        return -5d
+        return -75d
     }
 
     @Override
     double gainAmount() {
         return 100d
     }
+
 }
 
 
@@ -329,7 +330,8 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 
     def quote(Data data, Map config) {
 
-        def phase3On = false
+        def phase3On = true
+        /* ACTIVATE FOR IT4 */
         def phase4On = false
         TravelData travel = toTravelData(data)
 
@@ -340,10 +342,7 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
         double optionPrice = optionPrice(data.options, config["optionsPrices"])
         int nbDays = travel.nbDays
 
-        /* ACTIVATE FOR IT4 */
-        if (phase4On) {
-            nbDays = romanPrice(nbDays)
-        } else {
+        if (!phase4On) {
             //premiere semaine est indivisible
             if (nbDays < 7) {
                 nbDays = 7
@@ -357,59 +356,62 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
 
 
         if (!phase4On && phase3On) {
-            //on ne paye la 2e semaine qu'à partir du 3e jours
-            if (nbDays > 7 && nbDays <= 10) {
+            //1) on ne paye la 2e semaine qu'à partir du 3e jours
+            if (nbDays > 7 && nbDays < 10) {
                 //nbDays=7
             }
-            //au delà de 3 semaines,on ne facture que les semaines pleines
+            //2) au delà de 3 semaines,on ne facture que les semaines pleines
             if (((int) travel.nbDays / 7) >= 3) {
                 //nbDays = ((int) travel.nbDays / 7) * 7
             }
-        }
-        if (phase3On) {
-            //Pack Jeune: au delà de 3 jeunes, 1 gratuit
-            if (nbYoungs > 3) {
+
+            //12) Pack Jeune: au delà de 3 jeunes, 1 gratuit
+            if (nbYoungs >= 3) {
                 //passengersRisks-=ageRisk(YOUNG)
             }
         }
 
         double total = price * countryRisk * passengersRisks * nbDays + optionPrice
+        if (phase4On) {
+            double rp = romanPrice(nbDays)
+            total = price * countryRisk * passengersRisks * rp + optionPrice
+        }
         double totalTmp = total
 
-        if (phase3On) {
+        if (!phase4On && phase3On) {
 
-            //réduction pack famille
-            if (nbChilds == 2 && nbAdults == 2) {
+            //3) réduction pack famille
+            if (nbChilds >= 2 && nbAdults >= 2) {
                 //totalTmp-=(total*20/100)
             }
 
-            //malus trop de personnes agées
+            //11) malus trop de personnes agées
             if (nbSeniors > (nbAdults + nbChilds + nbYoungs)) {
                 //totalTmp+=(total*nbSeniors/100)
             }
-            //pas assez d'adultes encadrants
+            //10) pas assez d'adultes encadrants
             if (nbChilds > nbAdults) {
                 //totalTmp+=(total*15/100)
             }
-            //au delà de 3 mois, on économise 5% par mois au delà
+            //13) au delà de 3 mois, on économise 5% par mois au delà
             if (nbDays / 30 > 3) {
                 //totalTmp-=total*((nbDays/30)-3)*5/100
             }
 
-            //5% pour les couples
+            //8) 5% pour les couples seuls
             if (nbAdults == 2 && nbYoungs == 0 && nbChilds == 0 && nbSeniors == 0) {
                 //totalTmp-=total*5/100
             }
 
-            //10% pour les jeunes couples
+            //5) 10% pour les jeunes couples
             if (nbAdults == 0 && nbYoungs == 2 && nbChilds == 0 && nbSeniors == 0) {
                 //totalTmp-=total*10/100
             }
-            //Pack Jeune++: au delà de 5 jeunes, 10% de promo
-            if (nbYoungs > 5) {
+            //6) Pack Jeune++: au delà de 5 jeunes, 10% de promo
+            if (nbYoungs >= 5) {
                 //totalTmp-=total*10/100
             }
-            //risque voyage solo: malus de 5%
+            //7) risque voyage solo: malus de 5%
             if (nbAdults + nbChilds + nbSeniors + nbYoungs == 1) {
                 //totalTmp+=total*5/100
             }
@@ -438,8 +440,8 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
         Cover cover = randomizator.pickOne(availableCovers, { c -> c.rate() })
         Country country = randomizator.pickOne(availableCountries, { c -> c.populationInMillions() })
         LocalDate dpDate = LocalDate.now().plusDays(randomizator.randomInt(100))
-        LocalDate reDate = dpDate.plusDays(randomizator.randomInt(80))
-        int nbTraveller = randomizator.randomInt(4) + 1
+        LocalDate reDate = dpDate.plusDays(randomizator.randomInt(150))
+        int nbTraveller = randomizator.randomInt(5) + 1
         int[] ages = randomizator.randomPositiveInts(nbTraveller, 95)
         List<Option> options = availableOptions.findAll { o -> randomizator.randomDouble() < o.rate }.toList()
 

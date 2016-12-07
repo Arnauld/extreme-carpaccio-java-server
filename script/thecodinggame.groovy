@@ -462,16 +462,8 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
     Question nextQuestion(int tick, Randomizator randomizator) {
         def config = carpaccio()
         Data data = generateData(randomizator, config)
-        return new QuestionInsurance(data: data)
-    }
-
-    /* REPLACE FOR IT5
-    @Override
-    Question nextQuestion(int tick, Randomizator randomizator) {
-        def config = carpaccio()
-        Data data = generateData(randomizator, config)
         return new     QuestionInsuranceCrossSelling(data: data,travelData: toTravelData(data))
-    }*/
+    }
 
     // -------------- TESTS --------------
 
@@ -573,7 +565,7 @@ public class QuestionInsuranceCrossSelling extends QuestionSupport implements Qu
     Data data
     TravelData travelData
 
-    double penalty = -50d
+    double penalty = -0d
     private double gains = 100d
 
 
@@ -638,9 +630,14 @@ public class QuestionInsuranceCrossSelling extends QuestionSupport implements Qu
 
         if (offers.size > 4) {
 
-            return -100.0
-
+            return -5.0
         }
+
+        if (offers.any { offer -> offer.length() > 50}) {
+
+            return -10.0
+        }
+
 
         // Too many cross-selling offers and you sell none
 
@@ -657,6 +654,60 @@ public class QuestionInsuranceCrossSelling extends QuestionSupport implements Qu
             if (offers.any { offer -> containsAny(offer, ["free"]) }) {
                 myReward += 20
             }
+
+        }
+
+
+        if (data.cover == Cover.Extra) {
+
+            if (offers.any { offer -> containsAny(offer, ["laser tag","laser","escape game","coding dojo", "coding game"]) }) {
+                myReward += 20
+            }
+
+        }
+
+
+        if ((data.travellers.contains(ADULT) || data.travellers.contains(SENIOR))  && offers.any { offer ->
+
+            containsAny(offer, [
+
+                    "restaurant",
+                    "museum",
+                    "guided",
+                    "dinner"
+            ])
+        }) {
+
+            myReward += 50
+
+        }
+
+
+        if ((data.travellers.contains(ADULT) || data.travellers.contains(SENIOR)) && data.travellers.length==2  && offers.any { offer ->
+
+            containsAny(offer, [
+                    "romantic"
+            ])
+        }) {
+
+            myReward += 50
+
+        }
+
+        if (data.travellers.contains(YOUNG) && offers.any { offer ->
+
+            containsAny(offer, [
+
+                    "party",
+                    "nightclub",
+                    "car rental",
+                    "rent car",
+                    "boardgame",
+                    "bar"
+            ])
+        }) {
+
+            myReward += 50
 
         }
 
@@ -714,7 +765,17 @@ public class QuestionInsuranceCrossSelling extends QuestionSupport implements Qu
 
                     "child wellfare",
 
-                    "nursery"
+                    "nursery",
+
+                    "trolley",
+
+                    "stroller",
+
+                    "baby-buggy",
+
+                    "baby buggy",
+
+                    "babybuggy"
 
             ])
         }) {
@@ -743,18 +804,36 @@ public class QuestionInsuranceCrossSelling extends QuestionSupport implements Qu
 
         // USA (MISSING COUNTRY) needs ESTA
 
-        if (data.country == Country.UK && data.nbDaysToDeparture < 21 && offers.any { offer ->
+        if (data.country == Country.FR && offers.any { offer ->
 
-            containsAny(offer, ["esta",])
+            containsAny(offer, ["futuroscope","disneyland"])
         }) {
 
-            myReward += 50
+            myReward += 60
+
+        }
+
+        if (data.country == Country.ES && offers.any { offer ->
+
+            containsAny(offer, ["portaventura"])
+        }) {
+
+            myReward += 60
+
+        }
+
+        if (data.country == Country.DE && offers.any { offer ->
+
+            containsAny(offer, ["europaparc","europa-parc","europa parc"])
+        }) {
+
+            myReward += 60
 
         }
 
         // USA (MISSING COUNTRY) is the country of cars
 
-        if (data.country == Country.UK && offers.any { offer ->
+        if (offers.any { offer ->
 
             containsAny(offer, [
 
@@ -768,6 +847,56 @@ public class QuestionInsuranceCrossSelling extends QuestionSupport implements Qu
             myReward += 70
 
         }
+
+        if (data.options.contains(Option.Skiing) && offers.any { offer ->
+
+            containsAny(offer, [
+
+                    "helmet",
+
+                    "ski rental",
+
+                    "rental ski",
+
+                    "medical assistance",
+
+                    "surf",
+
+                    "snow tire",
+
+                    "cap"
+
+            ])
+        }) {
+
+            myReward += 40
+
+        }
+
+        if (data.options.contains(Option.Sports) && offers.any { offer ->
+
+            containsAny(offer, [
+
+                    "helmet",
+
+                    "extreme",
+
+                    "massage",
+
+                    "sauna",
+
+                    "hammam",
+
+                    "energy",
+
+                    "medical"
+            ])
+        }) {
+
+            myReward += 40
+
+        }
+
 
         //option = Skiing  -> "mountain" "guide" "wine" "pass" "restaurant" "club" "VIP" only if country = CH
 

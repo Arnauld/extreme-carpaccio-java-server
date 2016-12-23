@@ -40,15 +40,14 @@ weight = 0.0 as double
 
 // Sorry, winter sports cover is not available for trips that are longer than 31 days.
 public enum Option {
-    WinterSports,
-    SportsAndActivities,
-    MedicalConditions
+    Skiing,
+    Medical,
+    Scuba,
 }
 
 public enum Cover {
     Basic,
-    Extra,
-    Premier
+    Extra
 }
 
 
@@ -174,12 +173,12 @@ public class InvalidTQuestionInsurance implements Question {
 
     @Override
     double gainAmount() {
-        return 100
+        return 5
     }
 
     @Override
     double lossPenalty() {
-        return -200
+        return -100
     }
 
     @Override

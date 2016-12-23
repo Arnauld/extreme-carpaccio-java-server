@@ -42,7 +42,12 @@ weight = 0.0 as double
 Randomizator random = new Randomizator();
 
 def questions = [
-        new CorruptedQuestion(),
+        new CorruptedQuestion().headersToPlayWith(CorruptedQuestion.Header.Random),
+        new CorruptedQuestion().headersToPlayWith(CorruptedQuestion.Header.ContentLength),
+        new CorruptedQuestion().headersToPlayWith(CorruptedQuestion.Header.Accept),
+        new CorruptedQuestion().headersToPlayWith(CorruptedQuestion.Header.ContentType),
+        new CorruptedQuestion().headersToPlayWith(CorruptedQuestion.Header.Random,CorruptedQuestion.Header.Accept),
+        new CorruptedQuestion().headersToPlayWith(CorruptedQuestion.Header.ContentLength,CorruptedQuestion.Header.Accept)
 ] as List
 
 

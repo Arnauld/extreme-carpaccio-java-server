@@ -9,6 +9,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -39,6 +43,8 @@ public class QuestionConfiguration {
             QuestionGeneratorComposite composite = new QuestionGeneratorComposite();
             Stream.of(scriptPaths.split(","))
                     .map(File::new)
+                    .map(this::listFolder).flatMap(Collection::stream)
+                    .map(this::listFolder).flatMap(Collection::stream)
                     .map(this::logGeneratorFile)
                     .map(QuestionGeneratorScriptBased::new)
                     .forEach(q -> composite.register(q, q));
@@ -46,6 +52,17 @@ public class QuestionConfiguration {
             LOG.info("Composite Question generator based on path {}", scriptPaths);
             return wrapWithFallback(composite, generatorBasic);
         }
+    }
+
+    private List<File> listFolder(File path) {
+        List<File> files = new ArrayList<>();
+        if (path.isFile()) {
+            files.add(path);
+        }
+        if (path.isDirectory()) {
+            Arrays.stream(path.list()).map(name->path.getAbsolutePath().concat("/").concat(name)).map(File::new).forEach(files::add);
+        }
+        return files;
     }
 
     private File logGeneratorFile(File file) {

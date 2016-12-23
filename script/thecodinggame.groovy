@@ -17,6 +17,7 @@ import groovy.transform.ToString
 
 import javax.validation.constraints.NotNull
 import java.time.LocalDate
+import java.util.function.IntUnaryOperator
 
 import static TypoPassenger.*
 
@@ -36,7 +37,7 @@ version = "1.0.0"
 //
 // ----------------------------------------------------------------------------
 
-weight = 1.0 as double
+weight = 0.0 as double
 
 // ----------------------------------------------------------------------------
 //
@@ -105,28 +106,41 @@ public class QuestionInsurance extends QuestionSupport implements Question {
 
     @Override
     double lossErrorPenalty() {
-        return -50d
+        return -1d
     }
 
     @Override
     double lossOfflinePenalty() {
-        return -25d
+        return -0d
     }
 
     @Override
     double lossPenalty() {
-        return -75d
+        return -15d
     }
 
     @Override
     double gainAmount() {
-        return 100d
+        return 50d
     }
 
 }
 
 
 public class QuestionInsuranceGenerator implements QuestionGenerator {
+    private class AddIntOperator implements IntUnaryOperator {
+
+        private int nbToAdd;
+
+        public AddIntOperator(int toAdd){
+            this.nbToAdd=toAdd;
+        }
+
+        @Override
+        int applyAsInt(int operand) {
+            return operand+nbToAdd
+        }
+    }
 
     def Map merge(Map... maps) {
         Map result
@@ -150,8 +164,8 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
         def config = [
                 "coverPrices"   : [
                         (Cover.Basic)  : 1.8,
-                        (Cover.Extra)  : 2.4,
-                        (Cover.Premier): 4.2
+                      (Cover.Extra)  : 2.4,
+                      (Cover.Premier): 4.2
                 ].asImmutable(),
                 "countriesRisks": [
                         (Country.DE): 0.8,
@@ -169,7 +183,6 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
                         (Country.SE): 1.2,
                         (Country.AT): 0.9,
                         (Country.BE): 0.9,
-                        (Country.BG): 1.1,
                         (Country.DK): 1.2,
                         (Country.FI): 0.8,
                         (Country.SK): 0.7,
@@ -178,11 +191,11 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
                         (Country.LT): 0.7,
                         (Country.SI): 0.8,
                         (Country.LV): 0.6,
+                        (Country.BG): 1.1,
                         (Country.EE): 1.3,
                         (Country.CY): 1.6,
                         (Country.LU): 1.3,
-                        (Country.MT): 1.2,
-
+                        (Country.MT): 1.2
                 ].asImmutable(),
                 "optionsPrices" : [
                         (Option.Skiing) : 24,
@@ -329,7 +342,7 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
     }
 
     def quote(Data data, Map config) {
-
+//true
         def phase3On = true
         /* ACTIVATE FOR IT4 */
         def phase4On = false
@@ -442,7 +455,15 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
         LocalDate dpDate = LocalDate.now().plusDays(randomizator.randomInt(100))
         LocalDate reDate = dpDate.plusDays(randomizator.randomInt(150))
         int nbTraveller = randomizator.randomInt(5) + 1
+        // de 0 à 95 ans
         int[] ages = randomizator.randomPositiveInts(nbTraveller, 95)
+        // jeunes + adultes + seniors
+        ages = Arrays.stream(randomizator.randomPositiveInts(nbTraveller, 60)).map(new AddIntOperator(18)).toArray();
+        // adultes + seniors
+        ages = Arrays.stream(randomizator.randomPositiveInts(nbTraveller, 50)).map(new AddIntOperator(26)).toArray();
+        // que des adultes
+        ages = Arrays.stream(randomizator.randomPositiveInts(nbTraveller, 10)).map(new AddIntOperator(26)).toArray();
+
         List<Option> options = availableOptions.findAll { o -> randomizator.randomDouble() < o.rate }.toList()
 
         Data data = new Data(
@@ -462,7 +483,7 @@ public class QuestionInsuranceGenerator implements QuestionGenerator {
     Question nextQuestion(int tick, Randomizator randomizator) {
         def config = carpaccio()
         Data data = generateData(randomizator, config)
-        return new     QuestionInsuranceCrossSelling(data: data,travelData: toTravelData(data))
+        return new     QuestionInsurance(data: data)
     }
 
     // -------------- TESTS --------------

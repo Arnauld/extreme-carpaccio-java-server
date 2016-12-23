@@ -60,7 +60,7 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
             return Observable.just(qop.withStatus(QuestionOfPlayer.Status.Error));
         }
 
-        HttpClientRequest<ByteBuf, ByteBuf> httpClientRequest = createHttpPostRequest(player.username(), uri, QUOTE_PATH);
+        HttpClientRequest<ByteBuf, ByteBuf> httpClientRequest = createHttpPostRequest(player.username(), uri, QUOTE_PATH, payload);
 
         return httpClientRequest
                 .writeContentAndFlushOnEach(Observable.just(payload))
@@ -127,7 +127,7 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
             return;
         }
 
-        HttpClientRequest<ByteBuf, ByteBuf> httpClientRequest = createHttpPostRequest(player.username(), uri, FEEDBACK_PATH);
+        HttpClientRequest<ByteBuf, ByteBuf> httpClientRequest = createHttpPostRequest(player.username(), uri, FEEDBACK_PATH,payload);
         httpClientRequest
                 .writeContentAndFlushOnEach(Observable.just(payload))
                 .doOnError(
@@ -137,7 +137,7 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
                 .subscribe();
     }
 
-    private HttpClientRequest<ByteBuf, ByteBuf> createHttpPostRequest(String playerName, URI uri, String uripath) {
+    private HttpClientRequest<ByteBuf, ByteBuf> createHttpPostRequest(String playerName, URI uri, String uripath, ByteBuf payload) {
         String host = uri.getHost();
         int port = uri.getPort();
         if (port == -1) {
@@ -148,7 +148,8 @@ public class RxNettyDispatcher implements QuestionDispatcher, FeedbackSender {
                 .followRedirects(3)
                 .createPost(uripath)
                 .addHeader(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON)
-                .addHeader(HttpHeaderNames.ACCEPT, HttpHeaderValues.APPLICATION_JSON);
+                .addHeader(HttpHeaderNames.ACCEPT, HttpHeaderValues.APPLICATION_JSON)
+                .addHeader(HttpHeaderNames.CONTENT_LENGTH, payload.capacity());
     }
 
     private QuestionOfPlayer consolidateResponse(QuestionOfPlayer qop, ResponseDto response) {

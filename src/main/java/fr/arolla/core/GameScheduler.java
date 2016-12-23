@@ -56,6 +56,6 @@ public class GameScheduler {
         executorService.scheduleAtFixedRate(() -> {
             int tick = ticker.tick();
             game.processIteration(tick);
-        }, 5, 5, TimeUnit.SECONDS);
+        }, 5, 10, TimeUnit.SECONDS);
     }
 }

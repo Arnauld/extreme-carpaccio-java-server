@@ -26,7 +26,7 @@ public class QuestionGeneratorScriptBasedTest {
 
     @Test
     public void insurance_usecase() throws JsonProcessingException {
-        File scriptFile = new File(TestProperties.get().getScriptDirectory(), "insurance.groovy");
+        File scriptFile = new File(TestProperties.get().getScriptDirectory()+"/insurance", "insurance-iteration-1.groovy");
         QuestionGeneratorScriptBased generator = new QuestionGeneratorScriptBased(scriptFile);
 
         Question question = generator.nextQuestion(1, randomizator);
@@ -36,7 +36,7 @@ public class QuestionGeneratorScriptBasedTest {
                 .containsPattern("\"departureDate\":\"\\d{4}\\-\\d{2}\\-\\d{2}\"")
                 .containsPattern("\"returnDate\":\"\\d{4}\\-\\d{2}\\-\\d{2}\"")
                 .containsPattern("\"travellerAges\":\\[(\\d+,?)*\\]")
-                .containsPattern("\"options\":\\[(\"(MedicalConditions|SportsAndActivities|WinterSports)\",?)*\\]")
+                .containsPattern("\"options\":\\[(\"(Skiing)\",?)*\\]")
                 .containsPattern("\"cover\":\"(Premier|Basic|Extra)\"");
     }
 

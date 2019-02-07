@@ -100,15 +100,15 @@ public class InMemoryPlayers implements Players {
 
     @Override
     public void remove(Player player) {
-        players.remove(player.username().toLowerCase());
+        players.remove(keyOf(player));
         cashHistories.remove(keyOf(player));
     }
 
     @Override
     public void resetScore(String username) {
-        Player playerToReset = players.get(username);
+        Player playerToReset = players.get(keyOf(username));
         playerToReset.cash(0);
-        players.remove(playerToReset);
+        players.remove(keyOf(playerToReset));
         this.add(playerToReset);
     }
 
